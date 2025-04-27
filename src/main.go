@@ -8,7 +8,9 @@ import (
 )
 
 var (
-	Version   = "Dev. Pre-Alpha 2.4.0"
+	VerBranch = "Dev."
+	VerStatus = "Pre-Alpha"
+	VerNumber = "2.4.0"
 	VerCommit = "dev"
 )
 
@@ -57,8 +59,8 @@ func main() {
 		InstallCommand(os.Args[2])
 	case "check":
 		CheckCommand()
-	case "update":
-		UpdateCommand()
+	// case "update":
+	// 	UpdateCommand()
 	case "info":
 		InfoCommand()
 	case "version":

@@ -520,6 +520,7 @@ func confirmPrompt(prompt string) bool {
 	return input == "y" || input == "yes"
 }
 
+// TODO: Fix update command and install.ps1 script
 func UpdateCommand() {
 	red := color.New(color.FgRed).SprintFunc()
 	green := color.New(color.FgGreen).SprintFunc()
@@ -527,7 +528,7 @@ func UpdateCommand() {
 	cyan := color.New(color.FgCyan).SprintFunc()
 
 	buildChannel := "production"
-	if strings.Contains(Version, "Dev") {
+	if strings.Contains(VerBranch, "Dev") {
 		buildChannel = "development"
 	}
 
@@ -556,28 +557,51 @@ func UpdateCommand() {
 		return
 	}
 
-	currentVersion := Version
-	var latestVersion string
+	current := parseVersion(
+		VerBranch,
+		VerStatus,
+		VerNumber,
+	)
+
+	var latest Version
 	if buildChannel == "production" {
-		latestVersion = versionInfo.Latest.Production.Version
+		latest = parseVersion(
+			"production",
+			versionInfo.Latest.Production.Status,
+			versionInfo.Latest.Production.Version,
+		)
 	} else {
-		latestVersion = versionInfo.Latest.Development.Version
+		latest = parseVersion(
+			"development",
+			versionInfo.Latest.Development.Status,
+			versionInfo.Latest.Development.Version,
+		)
 	}
 
-	if currentVersion == latestVersion {
+	statusChange := ""
+	if current.Status != latest.Status {
+		statusChange = fmt.Sprintf("%s → %s ",
+			yellow(current.Status),
+			green(latest.Status),
+		)
+	}
+
+	if current == latest {
 		fmt.Printf("%s You're already on the latest %s version (%s)\n",
 			green("✓"),
 			cyan(buildChannel),
-			green(currentVersion),
+			green(current),
 		)
 		return
 	}
 
-	fmt.Printf("%s New %s version available: %s → %s\n",
+	fmt.Printf("%s New %s version available: %s%s%s → %s\n",
 		yellow("!"),
-		cyan(buildChannel),
-		yellow(currentVersion),
-		green(latestVersion),
+		cyan(current.Branch),
+		statusChange,
+		cyan(current.Number),
+		yellow("→"),
+		green(latest.Number),
 	)
 
 	if !confirmPrompt("Would you like to update?") {
@@ -595,7 +619,7 @@ func UpdateCommand() {
 		return
 	}
 
-	fmt.Printf("%s Successfully updated to %s\n", green("✓"), green(latestVersion))
+	fmt.Printf("%s Successfully updated to %s\n", green("✓"), green(latest))
 }
 
 func InfoCommand() {
@@ -617,7 +641,7 @@ func VersionCommand() {
 
 	fmt.Printf("%s %s\n",
 		cyan("Zoi"),
-		green(Version),
+		green(VerBranch, " ", VerStatus, " ", VerNumber),
 	)
 	if getLinuxDistro() == "unknown" {
 		fmt.Printf("Runtime: %s/%s\n",
@@ -663,7 +687,7 @@ func PrintUsage() {
 	fmt.Println("  zoi help                             - Show usage")
 	fmt.Println("  zoi about                            - Show about information")
 	fmt.Println("  zoi check                            - Verify system health and requirements")
-	fmt.Println("  zoi UPDATE                           - Check for and install updates")
+	// fmt.Println("  zoi update                           - Check for and install updates")
 	fmt.Println("  zoi create <app> <name>              - Create new application")
 	fmt.Println("  zoi make <file.yaml>                 - Create new application from a local file")
 	fmt.Println("  zoi install <package>[@version]      - Install system packages")

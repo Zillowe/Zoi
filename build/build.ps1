@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-New-Item -ItemType Directory -Path "compiled" -Force | Out-Null
+New-Item -ItemType Directory -Path "build/compiled" -Force | Out-Null
 
 try {
     $commit = (git rev-parse --short=10 HEAD 2>$null)
@@ -11,7 +11,7 @@ catch {
 }
 
 Write-Host "Building Zoi for Windows..." -ForegroundColor Cyan
-go build -o "./build/zoi.exe" `
+go build -o "./build/compiled/zoi.exe" `
     -ldflags "-X main.VerCommit=$commit" `
     ./src
 

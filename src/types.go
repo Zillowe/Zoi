@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"regexp"
+	"strconv"
+	"strings"
 )
 
 type AppDefinition struct {
@@ -103,6 +105,73 @@ const (
 	configDir      = ".zoi"
 	configFile     = "config.yaml"
 )
+
+// Add this to your types.go or commands.go
+type Version struct {
+	Branch string
+	Status string
+	Number string
+}
+
+var statusOrder = map[string]int{
+	"Pre-Alpha":    0,
+	"Alpha":        1,
+	"Pre-Beta":     2,
+	"Beta":         3,
+	"Pre-Release":  4,
+	"Early-Access": 5,
+	"Demo":         6,
+	"Release":      7,
+}
+
+func parseVersion(branch, status, number string) Version {
+	return Version{
+		Branch: branch,
+		Status: status,
+		Number: number,
+	}
+}
+
+func (v Version) Compare(other Version) int {
+	currentRank := statusOrder[v.Status]
+	otherRank := statusOrder[other.Status]
+
+	if otherRank > currentRank {
+		return 1
+	}
+
+	if otherRank < currentRank {
+		return -1
+	}
+
+	return compareSemver(v.Number, other.Number)
+}
+
+func compareSemver(a, b string) int {
+	aParts := strings.Split(a, ".")
+	bParts := strings.Split(b, ".")
+
+	for i := 0; i < len(aParts) && i < len(bParts); i++ {
+		aNum, _ := strconv.Atoi(aParts[i])
+		bNum, _ := strconv.Atoi(bParts[i])
+
+		if aNum > bNum {
+			return 1
+		}
+		if aNum < bNum {
+			return -1
+		}
+	}
+
+	if len(aParts) > len(bParts) {
+		return 1
+	}
+	if len(aParts) < len(bParts) {
+		return -1
+	}
+
+	return 0
+}
 
 func (i *InstallSpec) UnmarshalJSON(data []byte) error {
 	var defaultCmd string
