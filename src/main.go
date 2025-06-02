@@ -1,0 +1,60 @@
+package main
+
+import (
+	"fmt"
+	"gct/src/commands"
+	"os"
+
+	"github.com/fatih/color"
+)
+
+var (
+	VerBranch = "Prod."
+	VerStatus = "Release"
+	VerNumber = "1.0.0"
+	VerCommit = "dev"
+)
+
+func main() {
+	if len(os.Args) < 2 || os.Args[1] == "help" {
+		commands.PrintUsage()
+		return
+	}
+
+	if os.Args[1] == "--version" || os.Args[1] == "-v" {
+		commands.VersionCommand(VerBranch, VerStatus, VerNumber, VerCommit)
+		return
+	}
+
+	command := os.Args[1]
+	args := os.Args[2:]
+
+	switch command {
+	case "version":
+		if len(args) > 0 {
+			fmt.Println(color.YellowString("Usage: gct version (no arguments expected)"))
+			return
+		}
+		commands.VersionCommand(VerBranch, VerStatus, VerNumber, VerCommit)
+	case "about":
+		if len(args) > 0 {
+			fmt.Println(color.YellowString("Usage: gct about (no arguments expected)"))
+			return
+		}
+		commands.AboutCommand()
+	case "update":
+		if len(args) > 0 {
+			fmt.Println(color.YellowString("Usage: gct update (no arguments expected)"))
+			return
+		}
+		commands.UpdateCommand(VerBranch, VerStatus, VerNumber)
+	case "commit":
+		if len(args) > 0 {
+			fmt.Println(color.YellowString("Usage: gct commit (no arguments expected)"))
+			return
+		}
+		commands.CommitCommand()
+	default:
+		commands.NotFoundCommand()
+	}
+}
