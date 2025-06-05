@@ -17,23 +17,23 @@ func PrintUsage() {
 	fmt.Printf("  gct %s\n\n", green("<command> [arguments...]"))
 
 	fmt.Printf("%s\n", yellow("CORE COMMANDS"))
-	fmt.Printf("  %s          Interactively create the 'gct.yaml' config file\n", green("%-15s", "init"))
-	fmt.Printf("  %s           Show GCT version information\n", green("%-15s", "version"))
-	fmt.Printf("  %s          Display details and information about GCT\n", green("%-15s", "about"))
-	fmt.Printf("  %s         Check for and apply updates to GCT itself\n", green("%-15s", "update"))
-	fmt.Printf("  %s              Show this help message\n\n", green("%-15s", "help"))
+	fmt.Printf("  %-18s          Interactively create the 'gct.yaml' config file\n", green("init"))
+	fmt.Printf("  %-18s          Show GCT version information\n", green("version"))
+	fmt.Printf("  %-18s          Display details and information about GCT\n", green("about"))
+	fmt.Printf("  %-18s          Check for and apply updates to GCT itself\n", green("update"))
+	fmt.Printf("  %-18s          Show this help message\n\n", green("help"))
 
 	fmt.Printf("%s\n", yellow("MANUAL GIT COMMANDS"))
-	fmt.Printf("  %s            Create a new git commit using an interactive form\n", green("%-15s", "commit"))
-	fmt.Printf("  %s       Edit the previous commit's message interactively\n\n", green("%-15s", "commit edit"))
+	fmt.Printf("  %-18s          Create a new git commit using an interactive form\n", green("commit"))
+	fmt.Printf("  %-18s        Edit the previous commit's message interactively\n\n", green("commit edit"))
 
 	fmt.Printf("%s\n", yellow("AI GIT COMMANDS"))
-	fmt.Printf("  %s     Generate a commit message using AI based on staged changes\n", green("%-15s", "ai commit"))
-	fmt.Printf("  %s       Explain code changes using AI\n", green("%-1s", "ai diff [args]"))
+	fmt.Printf("  %-18s          Generate a commit message using AI based on staged changes\n", green("ai commit"))
+	fmt.Printf("  %-18s     Explain code changes using AI\n", green("ai diff [args]"))
 	fmt.Printf("    %s %s\n", faint("└─"), "Explain unstaged changes")
 	fmt.Printf("    %s %s\n", faint("  └─"), green("--staged"))
 	fmt.Printf("    %s %s\n\n", faint("  └─"), green("<commit|branch>"))
 
 	fmt.Printf("%s\n", yellow("GLOBAL FLAGS"))
-	fmt.Printf("  %s, %s     Show GCT version information\n", green("-v"), green("--version"))
+	fmt.Printf("  %s, %s      Show GCT version information\n", green("-v"), green("--version"))
 }

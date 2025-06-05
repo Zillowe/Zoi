@@ -11,7 +11,7 @@ func AboutCommand() {
 	yellow := color.New(color.FgYellow).SprintFunc()
 
 	fmt.Println(cyan("About GCT:"))
-	fmt.Printf("  GCT is a git commit tool.\n")
+	fmt.Printf("  GCT is a smart, interactive Git tool powered by AI.\n")
 	fmt.Printf("\n")
 	fmt.Printf("  GCT is a part of the Zillowe Development Suite (ZDS)\n")
 	fmt.Printf("\n")

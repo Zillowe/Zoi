@@ -18,7 +18,7 @@ Focus on the following aspects:
 2.  **Key Changes:** Describe the most important modifications. What was added, removed, or refactored?
 3.  **Potential Impact:** Are there any potential risks, breaking changes, or important considerations for other developers?
 
-Do not describe the changes line-by-line. Structure your response using Markdown for clarity (e.g., headings, bullet points).
+Do not describe the changes line-by-line. Structure your response using Markdown for clarity (e.g. headings, bullet points).
 
 --- GIT DIFF START ---
 %s

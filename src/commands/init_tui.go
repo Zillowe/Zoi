@@ -20,10 +20,10 @@ const (
 )
 
 var (
-	titleStyle     = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205"))
-	promptStyle    = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
-	selectedStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("205")).Bold(true)
-	checkmarkStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("46"))
+	titleStyleInit     = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("205"))
+	promptStyleInit    = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	selectedStyleInit  = lipgloss.NewStyle().Foreground(lipgloss.Color("205")).Bold(true)
+	checkmarkStyleInit = lipgloss.NewStyle().Foreground(lipgloss.Color("46"))
 )
 
 type InitTUIModel struct {
@@ -52,7 +52,7 @@ func NewInitTUIModel() InitTUIModel {
 	inputs[0].Width = 50
 
 	inputs[1] = textinput.New()
-	inputs[1].Placeholder = "e.g., gpt-4o, claude-3-haiku-20240307"
+	inputs[1].Placeholder = "e.g. gpt-4o, claude-3-haiku-20240307"
 	inputs[1].CharLimit = 100
 	inputs[1].Width = 50
 
@@ -158,36 +158,36 @@ func (m InitTUIModel) View() string {
 	}
 	var s strings.Builder
 
-	s.WriteString(titleStyle.Render("Welcome to GCT! Let's set up your project.") + "\n")
-	s.WriteString(promptStyle.Render("Fill in the details below. Press Enter to confirm each step.") + "\n\n")
+	s.WriteString(titleStyleInit.Render("Welcome to GCT! Let's set up your project.") + "\n")
+	s.WriteString(promptStyleInit.Render("Fill in the details below. Press Enter to confirm each step.") + "\n\n")
 
 	if m.currentState > stateInitName {
-		s.WriteString(fmt.Sprintf("%s Project Name: %s\n", checkmarkStyle.Render("✓"), m.Name))
+		s.WriteString(fmt.Sprintf("%s Project Name: %s\n", checkmarkStyleInit.Render("✓"), m.Name))
 	} else {
 		s.WriteString("Project Name:\n" + m.inputs[0].View() + "\n")
 	}
 
 	if m.currentState > stateInitProvider {
-		s.WriteString(fmt.Sprintf("%s AI Provider: %s\n", checkmarkStyle.Render("✓"), m.Provider))
+		s.WriteString(fmt.Sprintf("%s AI Provider: %s\n", checkmarkStyleInit.Render("✓"), m.Provider))
 	} else if m.currentState == stateInitProvider {
 		s.WriteString("Select AI Provider (Use ↑/↓):\n")
 		for i, choice := range ai.SupportedProviders {
 			cursor := "  "
 			if m.providerCursor == i {
-				cursor = selectedStyle.Render("> ")
+				cursor = selectedStyleInit.Render("> ")
 			}
 			s.WriteString(fmt.Sprintf("%s%s\n", cursor, choice))
 		}
 	}
 
 	if m.currentState > stateInitModel {
-		s.WriteString(fmt.Sprintf("%s AI Model: %s\n", checkmarkStyle.Render("✓"), m.Model))
+		s.WriteString(fmt.Sprintf("%s AI Model: %s\n", checkmarkStyleInit.Render("✓"), m.Model))
 	} else if m.currentState == stateInitModel {
 		s.WriteString("\nAI Model Name:\n" + m.inputs[1].View() + "\n")
 	}
 
 	if m.currentState > stateInitAPIKey {
-		s.WriteString(fmt.Sprintf("%s API Key: %s\n", checkmarkStyle.Render("✓"), "[hidden]"))
+		s.WriteString(fmt.Sprintf("%s API Key: %s\n", checkmarkStyleInit.Render("✓"), "[hidden]"))
 	} else if m.currentState == stateInitAPIKey {
 		s.WriteString("\nAPI Key:\n" + m.inputs[2].View() + "\n")
 	}
@@ -197,11 +197,11 @@ func (m InitTUIModel) View() string {
 		if guidesDisplay == "" {
 			guidesDisplay = "None"
 		}
-		s.WriteString(fmt.Sprintf("%s Commit Guides: %s\n", checkmarkStyle.Render("✓"), guidesDisplay))
+		s.WriteString(fmt.Sprintf("%s Commit Guides: %s\n", checkmarkStyleInit.Render("✓"), guidesDisplay))
 	} else if m.currentState == stateInitGuides {
 		s.WriteString("\nCommit Guides (optional, separate multiple paths with a space):\n" + m.inputs[3].View() + "\n")
 	}
 
-	s.WriteString(promptStyle.Render("\nPress Esc or Ctrl+C to quit at any time."))
+	s.WriteString(promptStyleInit.Render("\nPress Esc or Ctrl+C to quit at any time."))
 	return s.String()
 }
