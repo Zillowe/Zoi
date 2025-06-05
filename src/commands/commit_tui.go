@@ -42,30 +42,36 @@ type CommitTUIModel struct {
 	Body       string
 }
 
-func NewCommitTUIModel() CommitTUIModel {
+func NewCommitTUIModel(initialType, initialSubject, initialBody string) CommitTUIModel {
 	typeTI := textinput.New()
 	typeTI.Placeholder = "e.g. ✨ Feat, Fix, Chore"
 	typeTI.Focus()
 	typeTI.CharLimit = 50
 	typeTI.Width = 50
 	typeTI.Prompt = "Type: "
+	typeTI.SetValue(initialType)
 
 	subjectTI := textinput.New()
 	subjectTI.Placeholder = "Concise explanation of the change"
 	subjectTI.CharLimit = 100
 	subjectTI.Width = 70
 	subjectTI.Prompt = "Subject: "
+	subjectTI.SetValue(initialSubject)
 
 	bodyTA := textarea.New()
 	bodyTA.Placeholder = "Detailed explanation of your changes. Ctrl+D to submit."
 	bodyTA.SetWidth(70)
 	bodyTA.SetHeight(5)
+	bodyTA.SetValue(initialBody)
 
 	return CommitTUIModel{
 		typeInput:    typeTI,
 		subjectInput: subjectTI,
 		bodyInput:    bodyTA,
 		focusIndex:   idxType,
+		CommitType:   initialType,
+		Subject:      initialSubject,
+		Body:         initialBody,
 	}
 }
 
