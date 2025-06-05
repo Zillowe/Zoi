@@ -26,6 +26,18 @@ func main() {
 		return
 	}
 
+	if len(os.Args) >= 3 && os.Args[1] == "ai" {
+		subCommand := os.Args[2]
+		switch subCommand {
+		case "commit":
+			commands.AICommitCommand()
+		default:
+			fmt.Printf("Unknown 'ai' subcommand: %s\n", subCommand)
+			commands.NotFoundCommand()
+		}
+		return
+	}
+
 	command := os.Args[1]
 	args := os.Args[2:]
 
