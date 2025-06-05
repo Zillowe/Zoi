@@ -1,66 +1,43 @@
 package commands
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"strings"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/fatih/color"
 )
 
 func CommitCommand() {
-	red := color.New(color.FgRed).SprintFunc()
-	green := color.New(color.FgGreen).SprintFunc()
-	yellow := color.New(color.FgYellow).SprintFunc()
-	cyan := color.New(color.FgCyan).SprintFunc()
+	tuiModel := NewCommitTUIModel()
 
-	fmt.Printf("%s Welcome to the GCT Commit Tool!\n", cyan("\n✨"))
+	p := tea.NewProgram(tuiModel, tea.WithAltScreen())
 
-	typeInput := promptForInput("Enter commit Type (e.g. ✨ Feat, Fix, Chore)")
-	for strings.TrimSpace(typeInput) == "" {
-		fmt.Printf("%s Type cannot be empty.\n", red("✗"))
-		typeInput = promptForInput("Enter commit Type (e.g. ✨ Feat, Fix, Chore)")
+	finalModel, err := p.Run()
+	if err != nil {
+		fmt.Printf("Error running TUI: %v\n", err)
+		return
 	}
 
-	subjectText := promptForInput("Enter Subject")
-	for strings.TrimSpace(subjectText) == "" {
-		fmt.Printf("%s Subject cannot be empty.\n", red("✗"))
-		subjectText = promptForInput("Enter Subject")
+	commitModel, ok := finalModel.(CommitTUIModel)
+	if !ok {
+		fmt.Println("Could not cast final TUI model. This is an unexpected error.")
+		return
 	}
 
-	commitSubjectLine := fmt.Sprintf("%s: %s", typeInput, subjectText)
-
-	fmt.Printf("%s Enter Body (optional, press Enter twice on consecutive empty lines to finish):\n", cyan("?"))
-	bodyLines := []string{}
-	reader := bufio.NewReader(os.Stdin)
-	consecutiveEmptyLineInputs := 0
-
-	for {
-		line, err := reader.ReadString('\n')
-		if err != nil {
-			break
-		}
-		line = strings.TrimSuffix(line, "\n")
-		line = strings.TrimSuffix(line, "\r")
-
-		if line == "" {
-			consecutiveEmptyLineInputs++
-			if consecutiveEmptyLineInputs == 2 {
-				break
-			}
-			bodyLines = append(bodyLines, line)
+	if !commitModel.submitted || (commitModel.CommitType == "" && commitModel.Subject == "") {
+		if commitModel.err != nil {
+			fmt.Printf("%s TUI Error: %v\n", color.RedString("✗"), commitModel.err)
 		} else {
-			consecutiveEmptyLineInputs = 0
-			bodyLines = append(bodyLines, line)
+			if !commitModel.quitting {
+				fmt.Printf("%s Commit process cancelled.\n", color.YellowString("!"))
+			}
 		}
+		return
 	}
 
-	if consecutiveEmptyLineInputs == 2 && len(bodyLines) > 0 && bodyLines[len(bodyLines)-1] == "" {
-		bodyLines = bodyLines[:len(bodyLines)-1]
-	}
-
-	commitBody := strings.Join(bodyLines, "\n")
+	commitSubjectLine := fmt.Sprintf("%s: %s", commitModel.CommitType, commitModel.Subject)
+	commitBody := commitModel.Body
 	trimmedBody := strings.TrimSpace(commitBody)
 
 	var displayCommitMessage strings.Builder
@@ -70,6 +47,11 @@ func CommitCommand() {
 		displayCommitMessage.WriteString(commitBody)
 	}
 	finalCommitMsgForDisplay := displayCommitMessage.String()
+
+	cyan := color.New(color.FgCyan).SprintFunc()
+	green := color.New(color.FgGreen).SprintFunc()
+	yellow := color.New(color.FgYellow).SprintFunc()
+	red := color.New(color.FgRed).SprintFunc()
 
 	fmt.Printf("\n%s This is your generated commit message (as Git will store it):\n", cyan("ⓘ"))
 	fmt.Printf("%s\n%s\n%s\n", yellow("--- Start of commit message ---"), green(finalCommitMsgForDisplay), yellow("--- End of commit message ---"))
@@ -91,9 +73,9 @@ func CommitCommand() {
 		cmdToExecute = fmt.Sprintf("git commit -m \"%s\"", escapedSubject)
 	}
 
-	err := executeCommand(cmdToExecute)
-	if err != nil {
-		fmt.Printf("%s Failed to commit: %v\n", red("✗"), err)
+	gitErr := executeCommand(cmdToExecute)
+	if gitErr != nil {
+		fmt.Printf("%s Failed to commit: %v\n", red("✗"), gitErr)
 		fmt.Printf("%s Command attempted: %s\n", red("↪"), cmdToExecute)
 		return
 	}
