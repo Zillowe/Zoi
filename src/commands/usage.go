@@ -11,7 +11,7 @@ func PrintUsage() {
 	yellow := color.New(color.FgYellow).SprintFunc()
 	green := color.New(color.FgGreen).SprintFunc()
 
-	fmt.Printf("%s - Universal Environment Setup Tool\n\n", cyan("GCT"))
+	fmt.Printf("%s - A smart, interactive Git committing tool\n\n", cyan("GCT"))
 	fmt.Printf("%s\n", yellow("Usage:"))
 	fmt.Printf("  gct %s\n\n", green("<command> [arguments...]"))
 
@@ -20,6 +20,7 @@ func PrintUsage() {
 	fmt.Printf("  %s             Display details and information about GCT\n", green("about"))
 	fmt.Printf("  %s            Check for and apply updates to GCT itself\n", green("update"))
 	fmt.Printf("  %s            Create a new git commit interactively\n", green("commit"))
+	fmt.Printf("  %s         Generate a commit message using AI based on staged changes\n", green("ai commit"))
 	fmt.Printf("  %s              Show this help message\n\n", green("help"))
 
 	fmt.Printf("%s\n", cyan("Flags:"))
