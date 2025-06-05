@@ -16,6 +16,7 @@ func PrintUsage() {
 	fmt.Printf("  gct %s\n\n", green("<command> [arguments...]"))
 
 	fmt.Printf("%s\n", cyan("Available Commands:"))
+	fmt.Printf("  %s              Interactively create the 'gct.yaml' config file\n", green("init"))
 	fmt.Printf("  %s           Show GCT version information\n", green("version"))
 	fmt.Printf("  %s             Display details and information about GCT\n", green("about"))
 	fmt.Printf("  %s            Check for and apply updates to GCT itself\n", green("update"))

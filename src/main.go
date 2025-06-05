@@ -45,6 +45,12 @@ func main() {
 	args := os.Args[2:]
 
 	switch command {
+	case "init":
+		if len(args) > 0 {
+			fmt.Println(color.YellowString("Usage: gct init (no arguments expected)"))
+			return
+		}
+		commands.InitCommand()
 	case "version":
 		if len(args) > 0 {
 			fmt.Println(color.YellowString("Usage: gct version (no arguments expected)"))
