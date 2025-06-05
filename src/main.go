@@ -30,9 +30,15 @@ func main() {
 		command := os.Args[1]
 		subCommand := os.Args[2]
 
-		if command == "ai" && subCommand == "commit" {
-			commands.AICommitCommand()
-			return
+		if command == "ai" {
+			switch subCommand {
+			case "commit":
+				commands.AICommitCommand()
+				return
+			case "diff":
+				commands.AIDiffCommand()
+				return
+			}
 		}
 
 		if command == "commit" && subCommand == "edit" {
@@ -75,6 +81,10 @@ func main() {
 			return
 		}
 		commands.CommitCommand()
+	case "ai":
+		fmt.Printf("%s 'ai' command requires a subcommand.\n", color.RedString("Error:"))
+		fmt.Println("Usage: gct ai [commit|diff]")
+		return
 	default:
 		commands.NotFoundCommand()
 	}
