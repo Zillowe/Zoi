@@ -3,7 +3,9 @@ package ai
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"strings"
+	"time"
 
 	"github.com/google/generative-ai-go/genai"
 	"google.golang.org/api/option"
@@ -18,8 +20,12 @@ func NewGoogleProvider(apiKey, modelName string) (*GoogleProvider, error) {
 		return nil, fmt.Errorf("Google AI Studio API key is required")
 	}
 
+	httpClient := &http.Client{
+		Timeout: 90 * time.Second,
+	}
+
 	ctx := context.Background()
-	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey))
+	client, err := genai.NewClient(ctx, option.WithAPIKey(apiKey), option.WithHTTPClient(httpClient))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create Google AI client: %w", err)
 	}
