@@ -9,7 +9,7 @@ import (
 var SupportedProviders = []string{
 	"Google AI Studio",
 	"OpenRouter",
-	// "OpenAI",    // Uncomment when implemented
+	"OpenAI",
 	// "Anthropic", // Uncomment when implemented
 }
 
@@ -24,7 +24,7 @@ func NewProvider(cfg *config.Config) (AIProvider, error) {
 		return NewOpenRouterProvider(cfg.APIKey, cfg.Model)
 
 	case "openai":
-		return nil, fmt.Errorf("provider '%s' is not yet implemented", cfg.Provider)
+		return NewOpenAIProvider(cfg.APIKey, cfg.Model)
 
 	case "anthropic":
 		return nil, fmt.Errorf("provider '%s' is not yet implemented", cfg.Provider)
