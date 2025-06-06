@@ -16,8 +16,12 @@ const charsPerToken = 4
 func runAITask(prompt string) (string, error) {
 	cyan := color.New(color.FgCyan).SprintFunc()
 	yellow := color.New(color.FgYellow).SprintFunc()
+	green := color.New(color.FgGreen).SprintFunc()
 
 	estimatedTokens := len(prompt) / charsPerToken
+
+	fmt.Printf("%s  Estimated tokens: ~%d\n", cyan("ℹ"), estimatedTokens)
+
 	if estimatedTokens > tokenWarningThreshold {
 		warningMsg := fmt.Sprintf(
 			"The input is large (~%d tokens). This may result in a long wait or higher costs.",
@@ -42,6 +46,9 @@ func runAITask(prompt string) (string, error) {
 	fmt.Println(cyan("[Thinking]..."))
 	ctx := context.Background()
 	generatedText, err := provider.Generate(ctx, prompt)
+
+	fmt.Printf("\r%s\n", green("✓ Done!        "))
+
 	if err != nil {
 		return "", fmt.Errorf("AI generation failed: %w", err)
 	}

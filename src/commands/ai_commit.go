@@ -72,7 +72,6 @@ func AICommitCommand() {
 
 	prompt := fmt.Sprintf(aiCommitPromptTemplate, guidelines.String(), string(diffOutput))
 
-	fmt.Println(cyan("[Thinking]..."))
 	generatedMsg, err := runAITask(prompt)
 	if err != nil {
 		if err.Error() == "operation cancelled by user" {
@@ -88,33 +87,25 @@ func AICommitCommand() {
 
 	fmt.Printf("\n%s AI Generated Commit Message:\n", cyan("🤖"))
 	fmt.Printf("%s\n%s\n%s\n", yellow("--- Start ---"), green(cleanMsg), yellow("--- End ---"))
+	action := promptForAction("Press [e] to edit, [Enter] to commit, [q] to quit:")
 
-	if !confirmPrompt("Use this commit message?") {
-		fmt.Println(yellow("Commit cancelled."))
+	switch action {
+	case 'e':
+		fmt.Println(cyan("\n✍️  Opening editor..."))
+		cType, cSubject, body := parseCommitMessage(cleanMsg)
+		tuiModel := NewCommitTUIModel(cType, cSubject, body)
+		runCommitTUI(tuiModel, false)
+
+	case '\n':
+		subjectLine, body, _ := strings.Cut(cleanMsg, "\n\n")
+		err := executeGitCommit(subjectLine, body, false)
+		if err != nil {
+			return
+		}
+		fmt.Printf("\n%s AI Commit successful!\n", green("✓"))
+
+	case 'q':
+		fmt.Println(yellow("\nCommit cancelled."))
 		return
 	}
-
-	parts := strings.SplitN(cleanMsg, "\n", 2)
-	subject := parts[0]
-	body := ""
-	if len(parts) > 1 {
-		body = strings.TrimSpace(parts[1])
-	}
-
-	escapedSubject := strings.ReplaceAll(subject, "\"", "\\\"")
-	var cmdToExecute string
-	if body != "" {
-		escapedBody := strings.ReplaceAll(body, "\"", "\\\"")
-		cmdToExecute = fmt.Sprintf("git commit -m \"%s\" -m \"%s\"", escapedSubject, escapedBody)
-	} else {
-		cmdToExecute = fmt.Sprintf("git commit -m \"%s\"", escapedSubject)
-	}
-
-	gitErr := executeCommand(cmdToExecute)
-	if gitErr != nil {
-		fmt.Printf("%s Failed to commit: %v\n", red("Error:"), gitErr)
-		return
-	}
-
-	fmt.Printf("\n%s AI Commit successful!\n", green("✓"))
 }

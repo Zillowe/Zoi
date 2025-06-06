@@ -64,14 +64,6 @@ func confirmPrompt(prompt string) bool {
 	return input == "y" || input == "yes"
 }
 
-func promptForInput(prompt string) string {
-	cyan := color.New(color.FgCyan).SprintFunc()
-	fmt.Printf("%s %s: ", cyan("?"), prompt)
-	reader := bufio.NewReader(os.Stdin)
-	input, _ := reader.ReadString('\n')
-	return strings.TrimSpace(input)
-}
-
 func NotFoundCommand() {
 	red := color.New(color.FgRed).SprintFunc()
 	yellow := color.New(color.FgYellow).SprintFunc()
@@ -83,4 +75,24 @@ func NotFoundCommand() {
 
 	fmt.Printf("%s Unknown command: '%s'\n", red("Error:"), yellow(attemptedCmd))
 	fmt.Printf("%s Run 'gct help' for a list of available commands.\n", yellow("Hint:"))
+}
+
+func promptForAction(prompt string) rune {
+	yellow := color.New(color.FgYellow).SprintFunc()
+	cyan := color.New(color.FgCyan).SprintFunc()
+
+	fmt.Printf("%s %s ", yellow("?"), cyan(prompt))
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+	input = strings.TrimSpace(strings.ToLower(input))
+
+	if len(input) > 0 {
+		switch input[0] {
+		case 'e':
+			return 'e'
+		case 'q':
+			return 'q'
+		}
+	}
+	return '\n'
 }
