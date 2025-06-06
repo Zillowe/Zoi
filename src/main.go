@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"gct/src/commands"
 	"os"
+	"strings"
 
 	"github.com/fatih/color"
 )
@@ -26,25 +27,23 @@ func main() {
 		return
 	}
 
-	if len(os.Args) > 2 {
-		command := os.Args[1]
-		subCommand := os.Args[2]
-
-		if command == "ai" {
-			switch subCommand {
-			case "commit":
-				commands.AICommitCommand()
-				return
-			case "diff":
-				commands.AIDiffCommand()
-				return
-			}
+	if len(os.Args) >= 3 && os.Args[1] == "ai" && os.Args[2] == "commit" {
+		additionalContext := ""
+		if len(os.Args) > 3 {
+			additionalContext = strings.Join(os.Args[3:], " ")
 		}
+		commands.AICommitCommand(additionalContext)
+		return
+	}
 
-		if command == "commit" && subCommand == "edit" {
-			commands.EditCommitCommand()
-			return
-		}
+	if len(os.Args) >= 3 && os.Args[1] == "ai" && os.Args[2] == "diff" {
+		commands.AIDiffCommand()
+		return
+	}
+
+	if len(os.Args) >= 3 && os.Args[1] == "commit" && os.Args[2] == "edit" {
+		commands.EditCommitCommand()
+		return
 	}
 
 	command := os.Args[1]

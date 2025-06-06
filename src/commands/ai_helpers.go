@@ -17,6 +17,7 @@ func runAITask(prompt string) (string, error) {
 	cyan := color.New(color.FgCyan).SprintFunc()
 	yellow := color.New(color.FgYellow).SprintFunc()
 	green := color.New(color.FgGreen).SprintFunc()
+	magenta := color.New(color.FgMagenta).SprintFunc()
 
 	estimatedTokens := len(prompt) / charsPerToken
 
@@ -42,6 +43,8 @@ func runAITask(prompt string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to initialize AI provider: %w", err)
 	}
+
+	fmt.Printf("%s Using %s from %s\n", cyan("›"), magenta(cfg.Model), magenta(cfg.Provider))
 
 	fmt.Println(cyan("[Thinking]..."))
 	ctx := context.Background()

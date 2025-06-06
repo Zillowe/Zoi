@@ -10,6 +10,30 @@ import (
 	"github.com/fatih/color"
 )
 
+const aiCommitPromptTemplateWithContext = `
+You are an expert programmer creating a commit message.
+Your task is to generate a concise, conventional commit message based on the provided guidelines, staged code changes, and any additional context.
+
+Adhere strictly to the following guidelines:
+--- GUIDELINES START ---
+%s
+--- GUIDELINES END ---
+
+Here is the additional context provided by the user. Incorporate this information into the commit message body where appropriate (e.g. for co-authorship, issue numbers, or specific explanations):
+--- ADDITIONAL CONTEXT START ---
+%s
+--- ADDITIONAL CONTEXT END ---
+
+Here are the staged changes (git diff):
+--- GIT DIFF START ---
+%s
+--- GIT DIFF END ---
+
+Based on all the information above, generate the complete commit message.
+The message must have a subject line, a blank line, and then the body.
+ONLY output the raw commit message itself, without any extra commentary, introductory text, or markdown formatting like backticks.
+`
+
 const aiCommitPromptTemplate = `
 You are an expert programmer creating a commit message.
 Your task is to generate a concise, conventional commit message based on the provided guidelines and staged code changes.
@@ -29,7 +53,7 @@ The message must have a subject line, a blank line, and then the body.
 ONLY output the raw commit message itself, without any extra commentary, introductory text, or markdown formatting like backticks.
 `
 
-func AICommitCommand() {
+func AICommitCommand(additionalContext string) {
 	cyan := color.New(color.FgCyan).SprintFunc()
 	yellow := color.New(color.FgYellow).SprintFunc()
 	red := color.New(color.FgRed).SprintFunc()
@@ -70,7 +94,13 @@ func AICommitCommand() {
 		return
 	}
 
-	prompt := fmt.Sprintf(aiCommitPromptTemplate, guidelines.String(), string(diffOutput))
+	var prompt string
+	if additionalContext != "" {
+		fmt.Println(cyan("✍️ Applying additional user context..."))
+		prompt = fmt.Sprintf(aiCommitPromptTemplateWithContext, guidelines.String(), additionalContext, string(diffOutput))
+	} else {
+		prompt = fmt.Sprintf(aiCommitPromptTemplate, guidelines.String(), string(diffOutput))
+	}
 
 	generatedMsg, err := runAITask(prompt)
 	if err != nil {
