@@ -1,9 +1,7 @@
 package commands
 
 import (
-	"context"
 	"fmt"
-	"gct/src/ai"
 	"gct/src/config"
 	"os"
 	"os/exec"
@@ -74,17 +72,14 @@ func AICommitCommand() {
 
 	prompt := fmt.Sprintf(aiCommitPromptTemplate, guidelines.String(), string(diffOutput))
 
-	provider, err := ai.NewProvider(cfg)
-	if err != nil {
-		fmt.Printf("%s %v\n", red("Error:"), err)
-		return
-	}
-
 	fmt.Println(cyan("[Thinking]..."))
-	ctx := context.Background()
-	generatedMsg, err := provider.Generate(ctx, prompt)
+	generatedMsg, err := runAITask(prompt)
 	if err != nil {
-		fmt.Printf("%s AI failed to generate commit message: %v\n", red("Error:"), err)
+		if err.Error() == "operation cancelled by user" {
+			fmt.Println(color.YellowString("Commit cancelled."))
+		} else {
+			fmt.Printf("%s %v\n", color.RedString("Error:"), err)
+		}
 		return
 	}
 

@@ -9,8 +9,25 @@ import (
 	"github.com/fatih/color"
 )
 
+const tokenWarningThreshold = 4000
+
+const charsPerToken = 4
+
 func runAITask(prompt string) (string, error) {
 	cyan := color.New(color.FgCyan).SprintFunc()
+	yellow := color.New(color.FgYellow).SprintFunc()
+
+	estimatedTokens := len(prompt) / charsPerToken
+	if estimatedTokens > tokenWarningThreshold {
+		warningMsg := fmt.Sprintf(
+			"The input is large (~%d tokens). This may result in a long wait or higher costs.",
+			estimatedTokens,
+		)
+		fmt.Printf("%s %s\n", yellow("Warning:"), warningMsg)
+		if !confirmPrompt("Do you want to continue?") {
+			return "", fmt.Errorf("operation cancelled by user")
+		}
+	}
 
 	cfg, err := config.LoadConfig()
 	if err != nil {
