@@ -14,6 +14,7 @@ type Config struct {
 	Provider string   `yaml:"provider"`
 	Model    string   `yaml:"model"`
 	APIKey   string   `yaml:"api"`
+	Endpoint string   `yaml:"endpoint,omitempty"`
 }
 
 func LoadConfig() (*Config, error) {

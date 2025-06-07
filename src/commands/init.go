@@ -63,6 +63,7 @@ func InitCommand() {
 		Model:    initModel.Model,
 		APIKey:   initModel.APIKey,
 		Guides:   guidePaths,
+		Endpoint: initModel.Endpoint,
 	}
 
 	yamlData, err := yaml.Marshal(&newConfig)

@@ -13,6 +13,7 @@ import (
 const (
 	stateInitName = iota
 	stateInitProvider
+	stateInitEndpoint
 	stateInitModel
 	stateInitAPIKey
 	stateInitGuides
@@ -34,6 +35,7 @@ type InitTUIModel struct {
 
 	Name     string
 	Provider string
+	Endpoint string
 	Model    string
 	APIKey   string
 	Guides   string
@@ -43,7 +45,7 @@ type InitTUIModel struct {
 }
 
 func NewInitTUIModel() InitTUIModel {
-	inputs := make([]textinput.Model, 4)
+	inputs := make([]textinput.Model, 5)
 
 	inputs[0] = textinput.New()
 	inputs[0].Placeholder = "My Awesome Project"
@@ -67,6 +69,11 @@ func NewInitTUIModel() InitTUIModel {
 	inputs[3].Placeholder = "./path/to/guide.md (optional)"
 	inputs[3].CharLimit = 256
 	inputs[3].Width = 50
+
+	inputs[4] = textinput.New()
+	inputs[4].Placeholder = "https://api.example.com/v1"
+	inputs[4].CharLimit = 256
+	inputs[4].Width = 50
 
 	return InitTUIModel{
 		currentState: stateInitName,
@@ -97,7 +104,18 @@ func (m InitTUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 			case stateInitProvider:
 				m.Provider = ai.SupportedProviders[m.providerCursor]
+				if strings.ToLower(strings.ReplaceAll(m.Provider, " ", "")) == "openaicompatible" {
+					m.currentState = stateInitEndpoint
+					m.inputs[4].Focus()
+					return m, textinput.Blink
+				}
 				m.currentState = stateInitModel
+				m.inputs[1].Focus()
+				return m, textinput.Blink
+			case stateInitEndpoint:
+				m.Endpoint = m.inputs[4].Value()
+				m.currentState = stateInitModel
+				m.inputs[4].Blur()
 				m.inputs[1].Focus()
 				return m, textinput.Blink
 			case stateInitModel:
@@ -147,6 +165,8 @@ func (m InitTUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.inputs[2], cmd = m.inputs[2].Update(msg)
 	case stateInitGuides:
 		m.inputs[3], cmd = m.inputs[3].Update(msg)
+	case stateInitEndpoint:
+		m.inputs[4], cmd = m.inputs[4].Update(msg)
 	}
 
 	return m, cmd
@@ -178,6 +198,14 @@ func (m InitTUIModel) View() string {
 			}
 			s.WriteString(fmt.Sprintf("%s%s\n", cursor, choice))
 		}
+	}
+
+	if m.currentState > stateInitEndpoint {
+		if m.Endpoint != "" {
+			s.WriteString(fmt.Sprintf("%s Endpoint URL: %s\n", checkmarkStyleInit.Render("✓"), m.Endpoint))
+		}
+	} else if m.currentState == stateInitEndpoint {
+		s.WriteString("\nEndpoint Base URL:\n" + m.inputs[4].View() + "\n")
 	}
 
 	if m.currentState > stateInitModel {

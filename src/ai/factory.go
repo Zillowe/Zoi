@@ -10,6 +10,7 @@ var SupportedProviders = []string{
 	"Google AI Studio",
 	"OpenRouter",
 	"OpenAI",
+	"OpenAI Compatible",
 	"Anthropic",
 }
 
@@ -25,6 +26,9 @@ func NewProvider(cfg *config.Config) (AIProvider, error) {
 
 	case "openai":
 		return NewOpenAIProvider(cfg.APIKey, cfg.Model)
+
+	case "openaicompatible":
+		return NewOpenAICompatibleProvider(cfg.APIKey, cfg.Model, cfg.Endpoint)
 
 	case "anthropic":
 		return NewAnthropicProvider(cfg.APIKey, cfg.Model)
