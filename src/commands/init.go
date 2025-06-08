@@ -110,7 +110,7 @@ func addPathToGitignore(pathToAdd string) error {
 		return fmt.Errorf("failed to read .gitignore: %w", err)
 	}
 
-	comment := fmt.Sprintf("\n# Added by GCT\n%s\n", pathToAdd)
+	comment := fmt.Sprintf("\n\n# Added by GCT\n%s", pathToAdd)
 	if _, err := file.WriteString(comment); err != nil {
 		return fmt.Errorf("failed to write to .gitignore: %w", err)
 	}
