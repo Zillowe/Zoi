@@ -80,7 +80,7 @@ func InitCommand() {
 
 	fmt.Printf("\n%s Config file '%s' created successfully!\n", green("✓"), configFileName)
 
-	err = addPathToGitignore(configFileName)
+	err = addPathToGitignore(configFileName, "/.gct/")
 	if err != nil {
 		fmt.Printf("%s Could not automatically update .gitignore: %v\n", yellow("Warning:"), err)
 		fmt.Printf("%s Please add '%s' to your .gitignore file manually to protect your API key.\n", yellow("Hint:"), configFileName)
@@ -91,7 +91,7 @@ func InitCommand() {
 	fmt.Printf("%s You can now run %s to generate commit messages.\n", cyan("›"), yellow("gct ai commit"))
 }
 
-func addPathToGitignore(pathToAdd string) error {
+func addPathToGitignore(pathsToAdd ...string) error {
 	const gitignoreFileName = ".gitignore"
 
 	file, err := os.OpenFile(gitignoreFileName, os.O_APPEND|os.O_CREATE|os.O_RDWR, 0644)
@@ -100,19 +100,32 @@ func addPathToGitignore(pathToAdd string) error {
 	}
 	defer file.Close()
 
+	existingEntries := make(map[string]bool)
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		if strings.TrimSpace(scanner.Text()) == pathToAdd {
-			return nil
-		}
+		existingEntries[strings.TrimSpace(scanner.Text())] = true
 	}
 	if err := scanner.Err(); err != nil {
 		return fmt.Errorf("failed to read .gitignore: %w", err)
 	}
 
-	comment := fmt.Sprintf("\n\n# Added by GCT\n%s", pathToAdd)
-	if _, err := file.WriteString(comment); err != nil {
-		return fmt.Errorf("failed to write to .gitignore: %w", err)
+	var newContent strings.Builder
+	for _, path := range pathsToAdd {
+		if !existingEntries[path] {
+			var comment string
+			if path == "gct.yaml" {
+				comment = "\n\n# Added by GCT\n"
+			} else if path == "/.gct/" {
+				comment = ""
+			}
+			newContent.WriteString(fmt.Sprintf("%s%s\n", comment, path))
+		}
+	}
+
+	if newContent.Len() > 0 {
+		if _, err := file.WriteString(newContent.String()); err != nil {
+			return fmt.Errorf("failed to write to .gitignore: %w", err)
+		}
 	}
 
 	return nil

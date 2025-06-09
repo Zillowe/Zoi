@@ -67,7 +67,7 @@ func AIDiffCommand() {
 	}
 
 	prompt := fmt.Sprintf(aiDiffPromptTemplate, string(diffOutput))
-	aiResponse, err := runAITask(prompt)
+	aiResponse, err := runAITask(prompt, false)
 	if err != nil {
 		if err.Error() == "operation cancelled by user" {
 			fmt.Println(color.YellowString("Diff analysis cancelled."))

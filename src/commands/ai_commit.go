@@ -102,7 +102,7 @@ func AICommitCommand(additionalContext string) {
 		prompt = fmt.Sprintf(aiCommitPromptTemplate, guidelines.String(), string(diffOutput))
 	}
 
-	generatedMsg, err := runAITask(prompt)
+	generatedMsg, err := runAITask(prompt, false)
 	if err != nil {
 		if err.Error() == "operation cancelled by user" {
 			fmt.Println(color.YellowString("Commit cancelled."))

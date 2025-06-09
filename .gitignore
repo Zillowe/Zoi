@@ -4,5 +4,8 @@ etc
 build/build
 build/build-all
 tests
+
 # Added by GCT
 gct.yaml
+
+/.gct/
