@@ -16,7 +16,8 @@ const (
 	stateInitEndpoint
 	stateInitModel
 	stateInitAPIKey
-	stateInitGuides
+	stateInitCommitGuides
+	stateInitChangelogGuides
 	stateSubmit
 )
 
@@ -33,19 +34,20 @@ type InitTUIModel struct {
 	providerCursor int
 	width          int
 
-	Name     string
-	Provider string
-	Endpoint string
-	Model    string
-	APIKey   string
-	Guides   string
+	Name            string
+	Provider        string
+	Endpoint        string
+	Model           string
+	APIKey          string
+	CommitGuides    string
+	ChangelogGuides string
 
 	quitting  bool
 	submitted bool
 }
 
 func NewInitTUIModel() InitTUIModel {
-	inputs := make([]textinput.Model, 5)
+	inputs := make([]textinput.Model, 6)
 
 	inputs[0] = textinput.New()
 	inputs[0].Placeholder = "My Awesome Project"
@@ -66,7 +68,7 @@ func NewInitTUIModel() InitTUIModel {
 	inputs[2].Width = 50
 
 	inputs[3] = textinput.New()
-	inputs[3].Placeholder = "./path/to/guide.md (optional)"
+	inputs[3].Placeholder = "./path/to/commits.md (optional)"
 	inputs[3].CharLimit = 256
 	inputs[3].Width = 50
 
@@ -74,6 +76,11 @@ func NewInitTUIModel() InitTUIModel {
 	inputs[4].Placeholder = "https://api.example.com/v1"
 	inputs[4].CharLimit = 256
 	inputs[4].Width = 50
+
+	inputs[5] = textinput.New()
+	inputs[5].Placeholder = "./path/to/changelogs.md (optional)"
+	inputs[5].CharLimit = 256
+	inputs[5].Width = 50
 
 	return InitTUIModel{
 		currentState: stateInitName,
@@ -126,12 +133,18 @@ func (m InitTUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, textinput.Blink
 			case stateInitAPIKey:
 				m.APIKey = m.inputs[2].Value()
-				m.currentState = stateInitGuides
+				m.currentState = stateInitCommitGuides
 				m.inputs[2].Blur()
 				m.inputs[3].Focus()
 				return m, textinput.Blink
-			case stateInitGuides:
-				m.Guides = m.inputs[3].Value()
+			case stateInitCommitGuides:
+				m.CommitGuides = m.inputs[3].Value()
+				m.currentState = stateInitChangelogGuides
+				m.inputs[3].Blur()
+				m.inputs[5].Focus()
+				return m, textinput.Blink
+			case stateInitChangelogGuides:
+				m.ChangelogGuides = m.inputs[5].Value()
 				m.currentState = stateSubmit
 				m.submitted = true
 				m.quitting = true
@@ -163,10 +176,12 @@ func (m InitTUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.inputs[1], cmd = m.inputs[1].Update(msg)
 	case stateInitAPIKey:
 		m.inputs[2], cmd = m.inputs[2].Update(msg)
-	case stateInitGuides:
+	case stateInitCommitGuides:
 		m.inputs[3], cmd = m.inputs[3].Update(msg)
 	case stateInitEndpoint:
 		m.inputs[4], cmd = m.inputs[4].Update(msg)
+	case stateInitChangelogGuides:
+		m.inputs[5], cmd = m.inputs[5].Update(msg)
 	}
 
 	return m, cmd
@@ -220,14 +235,24 @@ func (m InitTUIModel) View() string {
 		s.WriteString("\nAPI Key:\n" + m.inputs[2].View() + "\n")
 	}
 
-	if m.currentState > stateInitGuides {
-		guidesDisplay := m.Guides
+	if m.currentState > stateInitCommitGuides {
+		guidesDisplay := m.CommitGuides
 		if guidesDisplay == "" {
 			guidesDisplay = "None"
 		}
 		s.WriteString(fmt.Sprintf("%s Commit Guides: %s\n", checkmarkStyleInit.Render("✓"), guidesDisplay))
-	} else if m.currentState == stateInitGuides {
-		s.WriteString("\nCommit Guides (optional, separate multiple paths with a space):\n" + m.inputs[3].View() + "\n")
+	} else if m.currentState == stateInitCommitGuides {
+		s.WriteString("\nCommit Guides (optional, separate paths with a space):\n" + m.inputs[3].View() + "\n")
+	}
+
+	if m.currentState > stateInitChangelogGuides {
+		guidesDisplay := m.ChangelogGuides
+		if guidesDisplay == "" {
+			guidesDisplay = "None"
+		}
+		s.WriteString(fmt.Sprintf("%s Changelog Guides: %s\n", checkmarkStyleInit.Render("✓"), guidesDisplay))
+	} else if m.currentState == stateInitChangelogGuides {
+		s.WriteString("\nChangelog Guides (optional, separate paths with a space):\n" + m.inputs[5].View() + "\n")
 	}
 
 	s.WriteString(promptStyleInit.Render("\nPress Esc or Ctrl+C to quit at any time."))

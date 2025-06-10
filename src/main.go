@@ -41,6 +41,11 @@ func main() {
 		return
 	}
 
+	if len(os.Args) >= 3 && os.Args[1] == "ai" && os.Args[2] == "log" {
+		commands.AILogCommand()
+		return
+	}
+
 	if len(os.Args) >= 3 && os.Args[1] == "commit" && os.Args[2] == "edit" {
 		commands.EditCommitCommand()
 		return

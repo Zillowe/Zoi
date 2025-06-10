@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"gct/src/ai"
 	"gct/src/config"
+	"os"
+	"strings"
 
 	"github.com/fatih/color"
 )
@@ -58,4 +60,24 @@ func runAITask(prompt string, isSilent bool) (string, error) {
 	}
 
 	return generatedText, nil
+}
+
+func readGuidelines(paths []string) (string, error) {
+	yellow := color.New(color.FgYellow).SprintFunc()
+	var guidelines strings.Builder
+
+	for _, path := range paths {
+		if !strings.HasSuffix(path, ".md") && !strings.HasSuffix(path, ".txt") {
+			fmt.Printf("%s Skipping unsupported guide file: %s\n", yellow("Warning:"), path)
+			continue
+		}
+		content, err := os.ReadFile(path)
+		if err != nil {
+			fmt.Printf("%s Could not read guide file %s: %v\n", yellow("Warning:"), path, err)
+			continue
+		}
+		guidelines.Write(content)
+		guidelines.WriteString("\n---\n")
+	}
+	return guidelines.String(), nil
 }

@@ -48,22 +48,24 @@ func InitCommand() {
 		return
 	}
 
-	var guidePaths []string
-	trimmedGuides := strings.TrimSpace(initModel.Guides)
-	if trimmedGuides != "" {
+	commitGuidePaths := []string{}
+	if trimmed := strings.TrimSpace(initModel.CommitGuides); trimmed != "" {
+		commitGuidePaths = strings.Fields(trimmed)
+	}
 
-		guidePaths = strings.Fields(trimmedGuides)
-	} else {
-		guidePaths = []string{}
+	changelogGuidePaths := []string{}
+	if trimmed := strings.TrimSpace(initModel.ChangelogGuides); trimmed != "" {
+		changelogGuidePaths = strings.Fields(trimmed)
 	}
 
 	newConfig := config.Config{
-		Name:     initModel.Name,
-		Provider: initModel.Provider,
-		Model:    initModel.Model,
-		APIKey:   initModel.APIKey,
-		Guides:   guidePaths,
-		Endpoint: initModel.Endpoint,
+		Name:       initModel.Name,
+		Provider:   initModel.Provider,
+		Model:      initModel.Model,
+		APIKey:     initModel.APIKey,
+		Endpoint:   initModel.Endpoint,
+		Commits:    config.GuidesConfig{Paths: commitGuidePaths},
+		Changelogs: config.GuidesConfig{Paths: changelogGuidePaths},
 	}
 
 	yamlData, err := yaml.Marshal(&newConfig)
@@ -80,7 +82,7 @@ func InitCommand() {
 
 	fmt.Printf("\n%s Config file '%s' created successfully!\n", green("✓"), configFileName)
 
-	err = addPathToGitignore(configFileName, "/.gct/")
+	err = addPathToGitignore(configFileName)
 	if err != nil {
 		fmt.Printf("%s Could not automatically update .gitignore: %v\n", yellow("Warning:"), err)
 		fmt.Printf("%s Please add '%s' to your .gitignore file manually to protect your API key.\n", yellow("Hint:"), configFileName)

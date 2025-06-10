@@ -8,13 +8,18 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
+type GuidesConfig struct {
+	Paths []string `yaml:"guides"`
+}
+
 type Config struct {
-	Name     string   `yaml:"name"`
-	Guides   []string `yaml:"guides"`
-	Provider string   `yaml:"provider"`
-	Model    string   `yaml:"model"`
-	APIKey   string   `yaml:"api"`
-	Endpoint string   `yaml:"endpoint,omitempty"`
+	Name       string       `yaml:"name"`
+	Provider   string       `yaml:"provider"`
+	Model      string       `yaml:"model"`
+	APIKey     string       `yaml:"api"`
+	Endpoint   string       `yaml:"endpoint,omitempty"`
+	Commits    GuidesConfig `yaml:"commits"`
+	Changelogs GuidesConfig `yaml:"changelogs"`
 }
 
 func LoadConfig() (*Config, error) {

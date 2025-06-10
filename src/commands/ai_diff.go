@@ -79,10 +79,10 @@ func AIDiffCommand() {
 
 	cleanMsg := strings.TrimSpace(aiResponse)
 
-	viewerModel := NewDiffViewerModel(cleanMsg)
+	viewerModel := NewAITextViewerModel("🤖 AI Explanation of Changes", cleanMsg)
 	p := tea.NewProgram(viewerModel, tea.WithAltScreen())
 
 	if _, err := p.Run(); err != nil {
-		fmt.Printf("%s Error displaying AI response: %v\n", red("Error:"), err)
+		fmt.Printf("%s Error displaying AI response: %v\n", color.RedString("Error:"), err)
 	}
 }

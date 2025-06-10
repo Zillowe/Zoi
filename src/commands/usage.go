@@ -32,6 +32,10 @@ func PrintUsage() {
 	fmt.Printf("  %-18s     Explain code changes using AI\n", green("ai diff [args]"))
 	fmt.Printf("    %s %s\n", faint("└─"), "Explain unstaged changes")
 	fmt.Printf("    %s %s\n", faint("  └─"), green("--staged"))
+	fmt.Printf("    %s %s\n", faint("  └─"), green("<commit|branch>"))
+	fmt.Printf("  %-18s      Generate a changelog entry from code changes\n", green("ai log [args]"))
+	fmt.Printf("    %s %s\n", faint("└─"), "For unstaged changes")
+	fmt.Printf("    %s %s\n", faint("  └─"), green("--staged"))
 	fmt.Printf("    %s %s\n\n", faint("  └─"), green("<commit|branch>"))
 
 	fmt.Printf("%s\n", yellow("GLOBAL FLAGS"))

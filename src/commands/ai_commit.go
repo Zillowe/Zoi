@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"gct/src/config"
-	"os"
 	"os/exec"
 	"strings"
 
@@ -86,20 +85,7 @@ func AICommitCommand(additionalContext string) {
 	}
 
 	fmt.Println(cyan("📚 Reading commit guidelines..."))
-	var guidelines strings.Builder
-	for _, guidePath := range cfg.Guides {
-		if !strings.HasSuffix(guidePath, ".md") && !strings.HasSuffix(guidePath, ".txt") {
-			fmt.Printf("%s Skipping unsupported guide file: %s\n", yellow("Warning:"), guidePath)
-			continue
-		}
-		content, err := os.ReadFile(guidePath)
-		if err != nil {
-			fmt.Printf("%s Could not read guide file %s: %v\n", yellow("Warning:"), guidePath, err)
-			continue
-		}
-		guidelines.Write(content)
-		guidelines.WriteString("\n")
-	}
+	guidelines, _ := readGuidelines(cfg.Commits.Paths)
 
 	fmt.Println(cyan("📝 Analyzing staged changes..."))
 	diffCmd := exec.Command("git", "diff", "--staged")
@@ -116,9 +102,9 @@ func AICommitCommand(additionalContext string) {
 	var prompt string
 	if additionalContext != "" {
 		fmt.Println(cyan("✍️ Applying additional user context..."))
-		prompt = fmt.Sprintf(aiCommitPromptTemplateWithContext, guidelines.String(), additionalContext, string(diffOutput))
+		prompt = fmt.Sprintf(aiCommitPromptTemplateWithContext, guidelines, additionalContext, string(diffOutput))
 	} else {
-		prompt = fmt.Sprintf(aiCommitPromptTemplate, guidelines.String(), string(diffOutput))
+		prompt = fmt.Sprintf(aiCommitPromptTemplate, guidelines, string(diffOutput))
 	}
 
 	initialGeneratedMsg, err := runAITask(prompt, false)
