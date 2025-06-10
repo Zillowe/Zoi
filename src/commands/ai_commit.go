@@ -10,6 +10,25 @@ import (
 	"github.com/fatih/color"
 )
 
+const aiEditCommitPromptTemplate = `
+You are a helpful assistant revising a git commit message based on user feedback.
+The user has provided an original commit message and an instruction on how to change it.
+
+Here is the original commit message:
+--- ORIGINAL MESSAGE START ---
+%s
+--- ORIGINAL MESSAGE END ---
+
+Here is the user's instruction for the change:
+--- USER INSTRUCTION START ---
+%s
+--- USER INSTRUCTION END ---
+
+Your task is to generate the full, revised commit message that incorporates the user's instruction.
+Maintain the original conventional commit format (e.g. "Type: Subject").
+ONLY output the raw, complete, revised commit message. Do not add any extra commentary.
+`
+
 const aiCommitPromptTemplateWithContext = `
 You are an expert programmer creating a commit message.
 Your task is to generate a concise, conventional commit message based on the provided guidelines, staged code changes, and any additional context.
@@ -102,7 +121,7 @@ func AICommitCommand(additionalContext string) {
 		prompt = fmt.Sprintf(aiCommitPromptTemplate, guidelines.String(), string(diffOutput))
 	}
 
-	generatedMsg, err := runAITask(prompt, false)
+	initialGeneratedMsg, err := runAITask(prompt, false)
 	if err != nil {
 		if err.Error() == "operation cancelled by user" {
 			fmt.Println(color.YellowString("Commit cancelled."))
@@ -112,30 +131,54 @@ func AICommitCommand(additionalContext string) {
 		return
 	}
 
-	cleanMsg := strings.TrimSpace(generatedMsg)
-	cleanMsg = strings.Trim(cleanMsg, "`")
+	currentMessage := strings.TrimSpace(initialGeneratedMsg)
+	currentMessage = strings.Trim(currentMessage, "`")
 
-	fmt.Printf("\n%s AI Generated Commit Message:\n", cyan("🤖"))
-	fmt.Printf("%s\n%s\n%s\n", yellow("--- Start ---"), green(cleanMsg), yellow("--- End ---"))
-	action := promptForAction("Press [e] to edit, [Enter] to commit, [q] to quit:")
+	for {
+		fmt.Printf("\n%s AI Generated Commit Message:\n", cyan("🤖"))
+		fmt.Printf("%s\n%s\n%s\n", yellow("--- Start ---"), green(currentMessage), yellow("--- End ---"))
 
-	switch action {
-	case 'e':
-		fmt.Println(cyan("\n✍️  Opening editor..."))
-		cType, cSubject, body := parseCommitMessage(cleanMsg)
-		tuiModel := NewCommitTUIModel(cType, cSubject, body)
-		runCommitTUI(tuiModel, false)
+		action := promptForAction("Press [c] to chat/change, [e] to edit, [Enter] to commit, [q] to quit:")
 
-	case '\n':
-		subjectLine, body, _ := strings.Cut(cleanMsg, "\n\n")
-		err := executeGitCommit(subjectLine, body, false)
-		if err != nil {
+		switch action {
+		case 'c':
+			changeRequest := promptForInput("What change would you like to make?")
+			if changeRequest == "" {
+				fmt.Println(yellow("No change request provided. Please try again."))
+				continue
+			}
+
+			revisionPrompt := fmt.Sprintf(aiEditCommitPromptTemplate, currentMessage, changeRequest)
+
+			revisedMsg, err := runAITask(revisionPrompt, true)
+			if err != nil {
+				fmt.Printf("%s %v\n", red("Error:"), err)
+				continue
+			}
+
+			currentMessage = strings.TrimSpace(revisedMsg)
+			currentMessage = strings.Trim(currentMessage, "`")
+			continue
+
+		case 'e':
+			fmt.Println(cyan("\n✍️ Opening editor..."))
+			cType, cSubject, body := parseCommitMessage(currentMessage)
+			tuiModel := NewCommitTUIModel(cType, cSubject, body)
+			runCommitTUI(tuiModel, false)
+			return
+
+		case '\n':
+			subjectLine, body, _ := strings.Cut(currentMessage, "\n\n")
+			err := executeGitCommit(subjectLine, body, false)
+			if err != nil {
+				return
+			}
+			fmt.Printf("\n%s AI Commit successful!\n", green("✓"))
+			return
+
+		case 'q':
+			fmt.Println(yellow("\nCommit cancelled."))
 			return
 		}
-		fmt.Printf("\n%s AI Commit successful!\n", green("✓"))
-
-	case 'q':
-		fmt.Println(yellow("\nCommit cancelled."))
-		return
 	}
 }

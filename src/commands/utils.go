@@ -88,6 +88,8 @@ func promptForAction(prompt string) rune {
 
 	if len(input) > 0 {
 		switch input[0] {
+		case 'c':
+			return 'c'
 		case 'e':
 			return 'e'
 		case 'q':
@@ -95,4 +97,12 @@ func promptForAction(prompt string) rune {
 		}
 	}
 	return '\n'
+}
+
+func promptForInput(prompt string) string {
+	cyan := color.New(color.FgCyan).SprintFunc()
+	fmt.Printf("%s %s: ", cyan("?"), prompt)
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+	return strings.TrimSpace(input)
 }

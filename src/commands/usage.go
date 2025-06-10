@@ -28,7 +28,7 @@ func PrintUsage() {
 	fmt.Printf("  %-18s        Edit the previous commit's message interactively\n\n", green("commit edit"))
 
 	fmt.Printf("%s\n", yellow("AI GIT COMMANDS"))
-	fmt.Printf("  %-18s          Generate a commit message using AI based on staged changes\n", green("ai commit"))
+	fmt.Printf("  %-18s          Generate and conversationally refine a commit message\n", green("ai commit"))
 	fmt.Printf("  %-18s     Explain code changes using AI\n", green("ai diff [args]"))
 	fmt.Printf("    %s %s\n", faint("└─"), "Explain unstaged changes")
 	fmt.Printf("    %s %s\n", faint("  └─"), green("--staged"))
