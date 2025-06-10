@@ -8,27 +8,39 @@ $ErrorActionPreference = "Stop"
 $RepoOwner = "Zusty"
 $RepoName = "GCT"
 $BaseUrl = "https://codeberg.org/$RepoOwner/$RepoName/releases/download/latest"
-$InstallDir = Join-Path $env:LOCALAPPDATA "GCT" 
 $BinName = "gct.exe"                             
 
 $Os = "windows"
 $Arch = ""
-$SystemType = (Get-CimInstance Win32_ComputerSystem).SystemType
-if ($SystemType -match "x64-based") {
-    $Arch = "amd64"
+try {
+    $SystemType = (Get-CimInstance Win32_ComputerSystem).SystemType
+    if ($SystemType -match "x64-based") {
+        $Arch = "amd64"
+    }
+    elseif ($SystemType -match "ARM64") {
+        $Arch = "arm64" 
+    }
+    else {
+        throw "Unsupported architecture: $SystemType"
+    }
 }
-elseif ($SystemType -match "ARM64") {
-    $Arch = "arm64" 
-}
-else {
-    Write-Error "Install Failed: GCT currently requires a 64-bit (x64 or ARM64) Windows system. Detected: $SystemType"
+catch {
+    Write-Error "Install Failed: GCT currently requires a 64-bit (x64 or ARM64) Windows system."
+    Write-Error $_.Exception.Message
     exit 1
 }
 
-$TargetBin = "gct-${Os}-${Arch}.zip"
-$DownloadUrl = "$BaseUrl/$TargetBin"
+
+$TargetArchive = "gct-${Os}-${Arch}.zip"
+$DownloadUrl = "$BaseUrl/$TargetArchive"
+$ChecksumUrl = "$BaseUrl/checksums.txt"
 $OutputPath = Join-Path $InstallDir $BinName
-$TempZipPath = Join-Path $env:TEMP $TargetBin
+
+$TempDir = Join-Path $env:TEMP ([System.Guid]::NewGuid().ToString())
+New-Item -ItemType Directory -Path $TempDir -Force | Out-Null
+$TempZipPath = Join-Path $TempDir $TargetArchive
+$TempChecksumPath = Join-Path $TempDir "checksums.txt"
+
 
 Write-Host "Installing/Updating GCT for $Os ($Arch)..."
 
@@ -39,20 +51,40 @@ if (-not (Test-Path $InstallDir)) {
 
 Write-Host "Downloading GCT from: $DownloadUrl"
 try {
-    Invoke-WebRequest -Uri $DownloadUrl -OutFile $TempZipPath -UseBasicParsing
-
+    if (Get-Command Start-BitsTransfer -ErrorAction SilentlyContinue) {
+        Start-BitsTransfer -Source $DownloadUrl -Destination $TempZipPath
+    } else {
+        Invoke-WebRequest -Uri $DownloadUrl -OutFile $TempZipPath -UseBasicParsing
+    }
     Write-Host "Downloaded successfully to: $TempZipPath"
 }
 catch {
     Write-Error "Install Failed: Could not download GCT from $DownloadUrl"
     Write-Error $_.Exception.Message
-    if (Test-Path $TempZipPath) { Remove-Item $TempZipPath -Force }
+    if (Test-Path $TempDir) { Remove-Item $TempDir -Recurse -Force }
     exit 1
 }
 
-if ((Get-Item $TempZipPath).Length -lt 1KB) {
-    Write-Error "Install Failed: Downloaded file seems too small or corrupted."
-    Remove-Item $TempZipPath -Force
+Write-Host "Verifying checksum..."
+try {
+    Invoke-WebRequest -Uri $ChecksumUrl -OutFile $TempChecksumPath -UseBasicParsing
+    
+    $ExpectedHash = (Get-Content $TempChecksumPath | Select-String -Pattern $TargetArchive).Line.Split(" ")[0]
+    if (-not $ExpectedHash) {
+        throw "Could not find checksum for '$TargetArchive' in the checksums file."
+    }
+
+    $ActualHash = (Get-FileHash -Path $TempZipPath -Algorithm SHA256).Hash.ToLower()
+
+    if ($ActualHash -ne $ExpectedHash) {
+        throw "Checksum mismatch! The downloaded file may be corrupt or tampered with."
+    }
+
+    Write-Host "Checksum verified successfully."
+}
+catch {
+    Write-Error "Security Verification Failed: $($_.Exception.Message)"
+    if (Test-Path $TempDir) { Remove-Item $TempDir -Recurse -Force }
     exit 1
 }
 
@@ -64,33 +96,22 @@ if (Test-Path $OutputPath) {
 Write-Host "Extracting archive..."
 try {
     Expand-Archive -Path $TempZipPath -DestinationPath $InstallDir -Force
-
-    $ExtractedExe = Get-ChildItem -Path $InstallDir -Filter "gct-${Os}-${Arch}.exe" -ErrorAction SilentlyContinue
-    if ($ExtractedExe) {
-        Write-Host "Renaming extracted binary to $BinName..."
-        Move-Item -Path $ExtractedExe.FullName -Destination $OutputPath -Force
+    
+    $ExtractedExe = Join-Path $InstallDir "gct.exe"
+    if (-not (Test-Path $ExtractedExe)) {
+        throw "Could not find 'gct.exe' in the extracted archive."
     }
-    else {
-        $AnyExe = Get-ChildItem -Path $InstallDir -Filter "*.exe" -ErrorAction SilentlyContinue
-        if ($AnyExe) {
-            Write-Host "Renaming extracted binary to $BinName..."
-            Move-Item -Path $AnyExe.FullName -Destination $OutputPath -Force
-        }
-        else {
-            throw "Could not find executable in extracted archive"
-        }
-    }
-
+    
+    
     Write-Host "Extraction successful to $InstallDir."
 }
 catch {
     Write-Error "Install Failed: Could not extract archive $TempZipPath"
     Write-Error $_.Exception.Message
-    if (Test-Path $TempZipPath) { Remove-Item $TempZipPath -Force }
     exit 1
 }
 finally {
-    if (Test-Path $TempZipPath) { Remove-Item $TempZipPath -Force }
+    if (Test-Path $TempDir) { Remove-Item $TempDir -Recurse -Force }
 }
 
 if (-not $NoPathUpdate) {
@@ -105,7 +126,7 @@ if (-not $NoPathUpdate) {
             }
             $NewPath = $UserPath + $Separator + $InstallDir
             [Environment]::SetEnvironmentVariable('Path', $NewPath, 'User')
-            Write-Host "PATH updated. You need to restart your terminal for the change to take effect."
+            Write-Host "PATH updated. You need to restart your terminal for the change to take effect." -ForegroundColor Green
         }
         else {
             Write-Host "'$InstallDir' is already in the user PATH."
@@ -121,5 +142,5 @@ else {
 }
 
 Write-Host ""
-Write-Host "GCT ($(Split-Path $TargetBin -Leaf)) installed/updated successfully to: $InstallDir"
+Write-Host "GCT ($TargetArchive) installed/updated successfully to: $InstallDir" -ForegroundColor Green
 Write-Host "Run 'gct --version' in a *new* terminal window to verify."
