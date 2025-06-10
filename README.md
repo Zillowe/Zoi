@@ -1,7 +1,9 @@
 <div align="center">
     <img width="120" height="120" hspace="10" alt="ZDS Logo" src="https://codeberg.org/Zusty/ZDS/media/branch/main/img/zds.png"/>
     <h1>GCT</h1>
-    An intelligent, AI-powered Git assistant
+    <strong>An intelligent, AI-powered Git assistant.</strong>
+    <br/>
+    <p>Go beyond simple commits. Let GCT explain, create, and conversationally refine your code changes with the power of AI.</p>
 <br/>
 <a href="https://codeberg.org/Zillowe/ZFPL">
 <img alt="ZFPL-1.0" src="https://codeberg.org/Zillowe/ZFPL/raw/branch/main/badges/1-0/dark.svg"/>
@@ -18,27 +20,36 @@ The first thing you should do after installation is set up your AI provider. GCT
 gct init
 ```
 
-This will guide you through selecting an AI provider, setting your model, and adding your API key to create a local `gct.yaml` configuration file.
+This will guide you through selecting an AI provider, setting your model, and adding your API key and guideline files to create a local `gct.yaml` configuration.
 
-## ⚙️ Configuration
+## ⚙️ Configuration (`gct.yaml`)
 
-The `gct init` command creates a `gct.yaml` file in your project's root directory. This file holds the configuration for all AI-related commands.
+The `gct init` command creates a `gct.yaml` file that holds the configuration for all AI-related commands.
+
+**Security Note:** This file contains your API key. The `gct init` command will automatically add `gct.yaml` to your `.gitignore` file to prevent accidentally committing secrets.
 
 **Example `gct.yaml`:**
 
 ```yaml
-name: "GCT"
-guides:
-  - ./etc/Commits.md
-provider: "OpenRouter" # Supported: "OpenAI", "Google AI Studio", "Anthropic", "OpenRouter"
-model: "google/gemma-2-9b-it" # The model name from your chosen provider
-api: "sk-or-v1-abc...123" # Your API Key
+name: "My Project"
+provider: "OpenAI"
+model: "gpt-4o"
+api: "sk-..."
+endpoint: "" # Only used for "OpenAI Compatible" provider
+commits:
+  guides:
+    - ./docs/COMMIT_STYLEGUIDE.md
+changelogs:
+  guides:
+    - ./docs/CHANGELOG_STYLE.md
 ```
 
-- `provider`: The AI service you want to use.
-- `model`: The specific model name from that provider (e.g. `gpt-4o`, `claude-3-haiku-20240307`).
+- `provider`: The AI service you want to use. Supported: `"OpenAI"`, `"Google AI Studio"`, `"Anthropic"`, `"OpenRouter"`, `"OpenAI Compatible"`.
+- `model`: The specific model name from your chosen provider (e.g. `gpt-4o`, `claude-3-sonnet-20240229`).
 - `api`: Your secret API key from the provider's dashboard.
-- `guides`: A list of local Markdown or text files that provide style guidelines for the AI to follow.
+- `endpoint`: (Optional) The base URL for an "OpenAI Compatible" provider.
+- `commits.guides`: A list of local files containing formatting rules for the `ai commit` command.
+- `changelogs.guides`: A list of local files containing formatting rules for the `ai log` command.
 
 ## ✨ Commands
 
@@ -59,20 +70,31 @@ GCT is a command-line tool. Here are the available commands, grouped by category
 | Command | Description |
 | :--- | :--- |
 | `gct commit` | Creates a new git commit using a TUI form. |
-| `gct commit edit` | Edits the previous commit's message using the same interactive TUI. |
+| `gct commit edit`| Edits the previous commit's message using the same interactive TUI. |
 
 ### AI Git Commands
 
 | Command | Description |
 | :--- | :--- |
-| `gct ai commit` | Uses AI to automatically generate a commit message from your staged changes. |
-| `gct ai diff [args]`| Asks AI to explain a set of code changes in a readable format. |
+| `gct ai commit [context]` | Generates and conversationally refines a commit message from staged changes. |
+| `gct ai diff [args]` | Asks AI to explain a set of code changes in a readable format. |
+| `gct ai log [args]` | Generates a user-facing changelog entry from code changes. |
 
-The `gct ai diff` command can be used in several ways:
+The `ai commit` command allows you to provide extra context to the AI and then iteratively refine the generated message:
 
-- `gct ai diff`: Explains unstaged changes in your working directory.
-- `gct ai diff --staged`: Explains changes that are staged for the next commit.
-- `gct ai diff <commit-hash>`: Explains the changes introduced by a specific commit.
+```sh
+# Provide extra context for the initial generation
+gct ai commit "This change was co-authored by Jane Doe"
+
+# After generation, you get new options:
+# > Press [c] to chat/change, [e] to edit, [Enter] to commit, [q] to quit:
+```
+
+The `ai diff` and `ai log` commands can be used in several ways:
+
+- `gct ai diff`: Explains unstaged changes.
+- `gct ai diff --staged`: Explains changes staged for the next commit.
+- `gct ai diff <commit-hash>`: Explains a specific commit's changes.
 - `gct ai diff <branch-name>`: Explains the differences between your current branch and the specified branch.
 
 ## 💾 Installation
@@ -99,10 +121,10 @@ Then, clone the repository and run the build script:
 
 ```sh
 # For Linux/macOS
-./build/build.sh
+./build/build-all.sh
 
 # For Windows
-./build/build.ps1
+./build/build-all.ps1
 ```
 
 ## 📚 Documentation
