@@ -8,6 +8,8 @@ commands:
     run: "./build/build"
   - cmd: "build-all"
     run: "./build/build-all"
+  - cmd: "archive"
+    run: "./build/archive"
 
 environments:
   - name: "Development"

@@ -1,9 +1,11 @@
-build/compiled
-test
 etc
-build/build
-build/build-all
+test
 tests
+build/compiled
+build/build
+build/archives
+build/build-all
+build/archive
 
 # Added by GCT
 gct.yaml
