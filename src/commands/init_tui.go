@@ -143,6 +143,9 @@ func (m InitTUIModel) Init() tea.Cmd {
 
 func (m InitTUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+	var cmds []tea.Cmd
+
+	providerID := strings.ToLower(strings.ReplaceAll(m.Provider, " ", ""))
 
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -158,9 +161,11 @@ func (m InitTUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.currentState = stateInitProvider
 				m.inputs[0].Blur()
 				return m, nil
+
 			case stateInitProvider:
 				m.Provider = ai.SupportedProviders[m.providerCursor]
-				providerID := strings.ToLower(strings.ReplaceAll(m.Provider, " ", ""))
+				providerID = strings.ToLower(strings.ReplaceAll(m.Provider, " ", ""))
+
 				switch providerID {
 				case "openaicompatible":
 					m.currentState = stateInitEndpoint
@@ -168,10 +173,10 @@ func (m InitTUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				case "googlevertexai", "vertexai", "vertex":
 					m.currentState = stateInitGCPProjectID
 					m.inputs[6].Focus()
-				case "amazonbedrock", "bedrock", "amazon":
+				case "amazonbedrock", "bedrock", "amazon", "aws":
 					m.currentState = stateInitAWSRegion
 					m.inputs[8].Focus()
-				case "azureopenai", "azure":
+				case "azureopenai":
 					m.currentState = stateInitAzureResourceName
 					m.inputs[11].Focus()
 				default:
@@ -179,66 +184,83 @@ func (m InitTUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.inputs[1].Focus()
 				}
 				return m, textinput.Blink
+
 			case stateInitEndpoint:
 				m.Endpoint = m.inputs[4].Value()
 				m.currentState = stateInitModel
 				m.inputs[4].Blur()
 				m.inputs[1].Focus()
 				return m, textinput.Blink
+
 			case stateInitGCPProjectID:
 				m.GCPProjectID = m.inputs[6].Value()
 				m.currentState = stateInitGCPRegion
 				m.inputs[6].Blur()
 				m.inputs[7].Focus()
 				return m, textinput.Blink
+
 			case stateInitGCPRegion:
 				m.GCPRegion = m.inputs[7].Value()
 				m.currentState = stateInitModel
 				m.inputs[7].Blur()
 				m.inputs[1].Focus()
 				return m, textinput.Blink
+
 			case stateInitAWSRegion:
 				m.AWSRegion = m.inputs[8].Value()
 				m.currentState = stateInitAWSAccessKeyID
 				m.inputs[8].Blur()
 				m.inputs[9].Focus()
 				return m, textinput.Blink
+
 			case stateInitAWSAccessKeyID:
 				m.AWSAccessKeyID = m.inputs[9].Value()
 				m.currentState = stateInitAWSSecretAccessKey
 				m.inputs[9].Blur()
 				m.inputs[10].Focus()
 				return m, textinput.Blink
+
 			case stateInitAWSSecretAccessKey:
 				m.AWSSecretAccessKey = m.inputs[10].Value()
 				m.currentState = stateInitModel
 				m.inputs[10].Blur()
 				m.inputs[1].Focus()
 				return m, textinput.Blink
+
 			case stateInitAzureResourceName:
 				m.AzureResourceName = m.inputs[11].Value()
 				m.currentState = stateInitModel
 				m.inputs[11].Blur()
 				m.inputs[1].Focus()
 				return m, textinput.Blink
+
 			case stateInitModel:
 				m.Model = m.inputs[1].Value()
-				m.currentState = stateInitAPIKey
-				m.inputs[1].Blur()
-				m.inputs[2].Focus()
+				if providerID == "amazonbedrock" || providerID == "bedrock" || providerID == "amazon" || providerID == "aws" {
+					m.currentState = stateInitCommitGuides
+					m.inputs[1].Blur()
+					m.inputs[3].Focus()
+				} else {
+					m.currentState = stateInitAPIKey
+					m.inputs[1].Blur()
+					m.inputs[2].Focus()
+				}
 				return m, textinput.Blink
+
 			case stateInitAPIKey:
 				m.APIKey = m.inputs[2].Value()
 				m.currentState = stateInitCommitGuides
 				m.inputs[2].Blur()
 				m.inputs[3].Focus()
 				return m, textinput.Blink
+
 			case stateInitCommitGuides:
 				m.CommitGuides = m.inputs[3].Value()
 				m.currentState = stateInitChangelogGuides
 				m.inputs[3].Blur()
 				m.inputs[5].Focus()
 				return m, textinput.Blink
+
 			case stateInitChangelogGuides:
 				m.ChangelogGuides = m.inputs[5].Value()
 				m.currentState = stateSubmit
@@ -269,18 +291,7 @@ func (m InitTUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case stateInitName:
 		m.inputs[0], cmd = m.inputs[0].Update(msg)
 	case stateInitModel:
-		m.Model = m.inputs[1].Value()
-		providerID := strings.ToLower(strings.ReplaceAll(m.Provider, " ", ""))
-		if providerID == "amazonbedrock" || providerID == "bedrock" {
-			m.currentState = stateInitCommitGuides
-			m.inputs[1].Blur()
-			m.inputs[3].Focus()
-		} else {
-			m.currentState = stateInitAPIKey
-			m.inputs[1].Blur()
-			m.inputs[2].Focus()
-		}
-		return m, textinput.Blink
+		m.inputs[1], cmd = m.inputs[1].Update(msg)
 	case stateInitAPIKey:
 		m.inputs[2], cmd = m.inputs[2].Update(msg)
 	case stateInitCommitGuides:
@@ -303,7 +314,8 @@ func (m InitTUIModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.inputs[11], cmd = m.inputs[11].Update(msg)
 	}
 
-	return m, cmd
+	cmds = append(cmds, cmd)
+	return m, tea.Batch(cmds...)
 }
 
 func (m InitTUIModel) View() string {
@@ -342,14 +354,65 @@ func (m InitTUIModel) View() string {
 		s.WriteString("\nEndpoint Base URL:\n" + m.inputs[4].View() + "\n")
 	}
 
+	if m.currentState > stateInitGCPProjectID {
+		if m.GCPProjectID != "" {
+			s.WriteString(fmt.Sprintf("%s GCP Project ID: %s\n", checkmarkStyleInit.Render("✓"), m.GCPProjectID))
+		}
+	} else if m.currentState == stateInitGCPProjectID {
+		s.WriteString("\nGCP Project ID:\n" + m.inputs[6].View() + "\n")
+	}
+	if m.currentState > stateInitGCPRegion {
+		if m.GCPRegion != "" {
+			s.WriteString(fmt.Sprintf("%s GCP Region: %s\n", checkmarkStyleInit.Render("✓"), m.GCPRegion))
+		}
+	} else if m.currentState == stateInitGCPRegion {
+		s.WriteString("\nGCP Region:\n" + m.inputs[7].View() + "\n")
+	}
+
+	if m.currentState > stateInitAWSRegion {
+		if m.AWSRegion != "" {
+			s.WriteString(fmt.Sprintf("%s AWS Region: %s\n", checkmarkStyleInit.Render("✓"), m.AWSRegion))
+		}
+	} else if m.currentState == stateInitAWSRegion {
+		s.WriteString("\nAWS Region:\n" + m.inputs[8].View() + "\n")
+	}
+	if m.currentState > stateInitAWSAccessKeyID {
+		if m.AWSAccessKeyID != "" {
+			s.WriteString(fmt.Sprintf("%s AWS Access Key ID: %s\n", checkmarkStyleInit.Render("✓"), "[hidden]"))
+		}
+	} else if m.currentState == stateInitAWSAccessKeyID {
+		s.WriteString("\nAWS Access Key ID:\n" + m.inputs[9].View() + "\n")
+	}
+	if m.currentState > stateInitAWSSecretAccessKey {
+		if m.AWSSecretAccessKey != "" {
+			s.WriteString(fmt.Sprintf("%s AWS Secret Access Key: %s\n", checkmarkStyleInit.Render("✓"), "[hidden]"))
+		}
+	} else if m.currentState == stateInitAWSSecretAccessKey {
+		s.WriteString("\nAWS Secret Access Key:\n" + m.inputs[10].View() + "\n")
+	}
+
+	if m.currentState > stateInitAzureResourceName {
+		if m.AzureResourceName != "" {
+			s.WriteString(fmt.Sprintf("%s Azure Resource Name: %s\n", checkmarkStyleInit.Render("✓"), m.AzureResourceName))
+		}
+	} else if m.currentState == stateInitAzureResourceName {
+		s.WriteString("\nAzure Resource Name:\n" + m.inputs[11].View() + "\n")
+	}
+
 	if m.currentState > stateInitModel {
-		s.WriteString(fmt.Sprintf("%s AI Model: %s\n", checkmarkStyleInit.Render("✓"), m.Model))
+		s.WriteString(fmt.Sprintf("%s Model/Deployment: %s\n", checkmarkStyleInit.Render("✓"), m.Model))
 	} else if m.currentState == stateInitModel {
-		s.WriteString("\nAI Model Name:\n" + m.inputs[1].View() + "\n")
+		modelPrompt := "\nAI Model Name:\n"
+		if m.Provider == "Azure OpenAI" {
+			modelPrompt = "\nAzure Deployment Name (this is your 'model'):\n"
+		}
+		s.WriteString(modelPrompt + m.inputs[1].View() + "\n")
 	}
 
 	if m.currentState > stateInitAPIKey {
-		s.WriteString(fmt.Sprintf("%s API Key: %s\n", checkmarkStyleInit.Render("✓"), "[hidden]"))
+		if m.APIKey != "" {
+			s.WriteString(fmt.Sprintf("%s API Key: %s\n", checkmarkStyleInit.Render("✓"), "[hidden]"))
+		}
 	} else if m.currentState == stateInitAPIKey {
 		s.WriteString("\nAPI Key:\n" + m.inputs[2].View() + "\n")
 	}
@@ -372,64 +435,6 @@ func (m InitTUIModel) View() string {
 		s.WriteString(fmt.Sprintf("%s Changelog Guides: %s\n", checkmarkStyleInit.Render("✓"), guidesDisplay))
 	} else if m.currentState == stateInitChangelogGuides {
 		s.WriteString("\nChangelog Guides (optional, separate paths with a space):\n" + m.inputs[5].View() + "\n")
-	}
-
-	if m.currentState > stateInitGCPProjectID {
-		if m.GCPProjectID != "" {
-			s.WriteString(fmt.Sprintf("%s GCP Project ID: %s\n", checkmarkStyleInit.Render("✓"), m.GCPProjectID))
-		}
-	} else if m.currentState == stateInitGCPProjectID {
-		s.WriteString("\nGCP Project ID:\n" + m.inputs[6].View() + "\n")
-	}
-
-	if m.currentState > stateInitGCPRegion {
-		if m.GCPRegion != "" {
-			s.WriteString(fmt.Sprintf("%s GCP Region: %s\n", checkmarkStyleInit.Render("✓"), m.GCPRegion))
-		}
-	} else if m.currentState == stateInitGCPRegion {
-		s.WriteString("\nGCP Region:\n" + m.inputs[7].View() + "\n")
-	}
-
-	if m.currentState > stateInitAWSRegion {
-		if m.AWSRegion != "" {
-			s.WriteString(fmt.Sprintf("%s AWS Region: %s\n", checkmarkStyleInit.Render("✓"), m.AWSRegion))
-		}
-	} else if m.currentState == stateInitAWSRegion {
-		s.WriteString("\nAWS Region:\n" + m.inputs[8].View() + "\n")
-	}
-
-	if m.currentState > stateInitAWSAccessKeyID {
-		if m.AWSAccessKeyID != "" {
-			s.WriteString(fmt.Sprintf("%s AWS Access Key ID: %s\n", checkmarkStyleInit.Render("✓"), "[hidden]"))
-		}
-	} else if m.currentState == stateInitAWSAccessKeyID {
-		s.WriteString("\nAWS Access Key ID:\n" + m.inputs[9].View() + "\n")
-	}
-
-	if m.currentState > stateInitAWSSecretAccessKey {
-		if m.AWSSecretAccessKey != "" {
-			s.WriteString(fmt.Sprintf("%s AWS Secret Access Key: %s\n", checkmarkStyleInit.Render("✓"), "[hidden]"))
-		}
-	} else if m.currentState == stateInitAWSSecretAccessKey {
-		s.WriteString("\nAWS Secret Access Key:\n" + m.inputs[10].View() + "\n")
-	}
-
-	if m.currentState > stateInitAzureResourceName {
-		if m.AzureResourceName != "" {
-			s.WriteString(fmt.Sprintf("%s Azure Resource Name: %s\n", checkmarkStyleInit.Render("✓"), m.AzureResourceName))
-		}
-	} else if m.currentState == stateInitAzureResourceName {
-		s.WriteString("\nAzure Resource Name:\n" + m.inputs[11].View() + "\n")
-	}
-
-	if m.currentState == stateInitModel {
-		modelPrompt := "\nAI Model Name:\n"
-		if m.Provider == "Azure OpenAI" {
-			modelPrompt = "\nAzure Deployment Name (put in the 'model' field):\n"
-		}
-		s.WriteString(modelPrompt + m.inputs[1].View() + "\n")
-	} else if m.currentState > stateInitModel {
-		s.WriteString(fmt.Sprintf("%s Model/Deployment: %s\n", checkmarkStyleInit.Render("✓"), m.Model))
 	}
 
 	s.WriteString(promptStyleInit.Render("\nPress Esc or Ctrl+C to quit at any time."))

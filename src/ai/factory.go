@@ -63,7 +63,7 @@ func NewProvider(cfg *config.Config) (AIProvider, error) {
 	case "huggingface", "hf":
 		return NewHuggingFaceProvider(cfg.APIKey, cfg.Model)
 
-	case "amazonbedrock", "bedrock", "amazon":
+	case "amazonbedrock", "bedrock", "amazon", "aws":
 		return NewBedrockProvider(cfg.AWSAccessKeyID, cfg.AWSSecretAccessKey, cfg.AWSRegion, cfg.Model)
 
 	case "xai", "grok":
