@@ -12,44 +12,58 @@
 
 <hr/>
 
+## ✨ Features
+
+- **Conversational AI Commits:** Generate a commit message and then "chat" with the AI to refine it until it's perfect.
+- **Multi-Provider Support:** Works with over 10 AI providers, including OpenAI, Anthropic, Google (AI Studio & Vertex AI), Mistral, Amazon Bedrock, and any OpenAI-compatible endpoint.
+- **AI-Generated Changelogs:** Automatically create user-facing changelogs from any set of git changes (`gct ai log`).
+- **AI-Powered Diff Analysis:** Get a high-level explanation of any commit, branch, or staged changes (`gct ai diff`).
+- **Guided Setup:** An interactive wizard (`gct init`) makes setup for any provider simple and fast.
+- **Custom Guidelines:** Enforce project-specific styles for commits and changelogs by providing your own guide files.
+
 ## 🚀 Getting Started
 
-The first thing you should do after installation is set up your AI provider. GCT includes an interactive wizard to make this easy. In your project directory, run:
+The easiest way to get started is with the **model preset wizard**. It provides a curated list of popular, high-performance models and configures the provider for you. In your project directory, run:
 
 ```sh
-gct init
+gct init model
 ```
 
-This will guide you through selecting an AI provider, setting your model, and adding your API key and guideline files to create a local `gct.yaml` configuration.
+For a fully manual setup where you enter the provider and model name yourself, run `gct init`.
 
 ## ⚙️ Configuration (`gct.yaml`)
 
-The `gct init` command creates a `gct.yaml` file that holds the configuration for all AI-related commands.
+The `init` command creates a `gct.yaml` file that holds the configuration for all AI commands.
 
 **Security Note:** This file contains your API key. The `gct init` command will automatically add `gct.yaml` to your `.gitignore` file to prevent accidentally committing secrets.
 
-**Example `gct.yaml`:**
+### Supported Providers
 
-```yaml
-name: "My Project"
-provider: "OpenAI"
-model: "gpt-4o"
-api: "sk-..."
-endpoint: "" # Only used for "OpenAI Compatible" provider
-commits:
-  guides:
-    - ./docs/COMMIT_STYLEGUIDE.md
-changelogs:
-  guides:
-    - ./docs/CHANGELOG_STYLE.md
-```
+GCT supports a wide range of providers:
+`Google AI Studio`, `Google Vertex AI`, `OpenAI`, `OpenAI Compatible`, `Azure OpenAI`, `Anthropic`, `OpenRouter`, `DeepSeek`, `Mistral`, `Alibaba`, `Hugging Face`, `Amazon Bedrock`, and `xAI`.
 
-- `provider`: The AI service you want to use. Supported: `"OpenAI"`, `"Google AI Studio"`, `"Anthropic"`, `"OpenRouter"`, `"OpenAI Compatible"`.
-- `model`: The specific model name from your chosen provider (e.g. `gpt-4o`, `claude-3-sonnet-20240229`).
-- `api`: Your secret API key from the provider's dashboard.
-- `endpoint`: (Optional) The base URL for an "OpenAI Compatible" provider.
-- `commits.guides`: A list of local files containing formatting rules for the `ai commit` command.
-- `changelogs.guides`: A list of local files containing formatting rules for the `ai log` command.
+### Configuration Fields
+
+- `provider`: The AI service you want to use.
+- `model`: The specific model/deployment name from your chosen provider.
+- `api`: Your secret API key.
+- `commits.guides` & `changelogs.guides`: Lists of local files containing formatting rules.
+- `endpoint`: (Optional) The base URL, only for the `"OpenAI Compatible"` provider.
+- `gcp_project_id`, `gcp_region`: (Optional) Required only for `"Google Vertex AI"`.
+- `aws_region`, `aws_access_key_id`, `aws_secret_access_key`: (Optional) Required only for `"Amazon Bedrock"`.
+- `azure_resource_name`: (Optional) Required only for `"Azure OpenAI"`.
+
+## 🤖 Model Recommendations
+
+Choosing a model can be tough. Here are some recommended starting points for GCT's use case:
+
+| Recommendation       | Model ID                             | Best For...                                         |
+| :------------------- | :----------------------------------- | :-------------------------------------------------- |
+| **Best Overall**     | `gpt-4o` (OpenAI)                    | Top-tier reasoning, speed, and instruction following. |
+| **Best Balance**     | `claude-3-sonnet-20240229` (Anthropic)| Excellent performance at a great price point.         |
+| **Fastest & Best Value** | `gemini-1.5-flash-latest` (Google)   | High-speed, low-cost tasks like `ai log` & chat.    |
+| **Best Open Model**  | `meta-llama/llama-3-70b-instruct` (via OpenRouter) | State-of-the-art open-source performance.          |
+| **Code Specialist**  | `deepseek-coder` (DeepSeek)          | Specifically trained on code for superior analysis. |
 
 ## ✨ Commands
 
@@ -59,18 +73,17 @@ GCT is a command-line tool. Here are the available commands, grouped by category
 
 | Command | Description |
 | :--- | :--- |
-| `gct init` | Interactively creates the `gct.yaml` config file in the current directory. |
+| `gct init model`| Starts a wizard with recommended models for easy setup. |
+| `gct init` | Interactively creates a `gct.yaml` config file with manual input. |
 | `gct version` | Shows GCT version information. |
-| `gct about` | Displays details and information about GCT. |
-| `gct update` | Checks for and applies updates to GCT itself. |
 | `gct help` | Shows the detailed help message. |
 
 ### Manual Git Commands
 
 | Command | Description |
 | :--- | :--- |
-| `gct commit` | Creates a new git commit using a TUI form. |
-| `gct commit edit`| Edits the previous commit's message using the same interactive TUI. |
+| `gct commit` | Creates a new git commit using an interactive TUI form. |
+| `gct commit edit`| Edits the previous commit's message using the same TUI. |
 
 ### AI Git Commands
 
@@ -80,26 +93,7 @@ GCT is a command-line tool. Here are the available commands, grouped by category
 | `gct ai diff [args]` | Asks AI to explain a set of code changes in a readable format. |
 | `gct ai log [args]` | Generates a user-facing changelog entry from code changes. |
 
-The `ai commit` command allows you to provide extra context to the AI and then iteratively refine the generated message:
-
-```sh
-# Provide extra context for the initial generation
-gct ai commit "This change was co-authored by Jane Doe"
-
-# After generation, you get new options:
-# > Press [c] to chat/change, [e] to edit, [Enter] to commit, [q] to quit:
-```
-
-The `ai diff` and `ai log` commands can be used in several ways:
-
-- `gct ai diff`: Explains unstaged changes.
-- `gct ai diff --staged`: Explains changes staged for the next commit.
-- `gct ai diff <commit-hash>`: Explains a specific commit's changes.
-- `gct ai diff <branch-name>`: Explains the differences between your current branch and the specified branch.
-
 ## 💾 Installation
-
-You can either build it from source or install it using our installer scripts.
 
 ### Scripts
 
@@ -117,8 +111,6 @@ irm https://zusty.codeberg.page/GCT/@main/app/install.ps1 | iex
 
 To build GCT from source you need to have [`go`](https://go.dev) installed.
 
-Then, clone the repository and run the build script:
-
 ```sh
 # For Linux/macOS
 ./build/build-all.sh
@@ -129,7 +121,7 @@ Then, clone the repository and run the build script:
 
 ## 📚 Documentation
 
-To get started with GCT please refer to the [GCT Wiki](https://codeberg.org/Zusty/GCT/wiki).
+For more detailed guides, please refer to the **[[GCT Wiki]]**.
 
 ## Footer
 

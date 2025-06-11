@@ -18,6 +18,8 @@ func PrintUsage() {
 
 	fmt.Printf("%s\n", yellow("CORE COMMANDS"))
 	fmt.Printf("  %-18s          Interactively create the 'gct.yaml' config file\n", green("init"))
+	fmt.Printf("    %s %s\n", faint("└─"), "Interactively create the 'gct.yaml' config file using preset of models")
+	fmt.Printf("    %s %s\n", faint("  └─"), green("model"))
 	fmt.Printf("  %-18s          Show GCT version information\n", green("version"))
 	fmt.Printf("  %-18s          Display details and information about GCT\n", green("about"))
 	fmt.Printf("  %-18s          Check for and apply updates to GCT itself\n", green("update"))
