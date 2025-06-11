@@ -51,14 +51,21 @@ func main() {
 		return
 	}
 
+	if len(os.Args) >= 3 && os.Args[1] == "init" && os.Args[2] == "model" {
+		commands.InitPresetCommand()
+		return
+	}
+
 	command := os.Args[1]
 	args := os.Args[2:]
 
 	switch command {
 	case "init":
 		if len(args) > 0 {
-			fmt.Println(color.YellowString("Usage: gct init (no arguments expected)"))
-			return
+			if args[0] != "model" {
+				fmt.Println(color.YellowString("Usage: gct init"))
+				return
+			}
 		}
 		commands.InitCommand()
 	case "version":
