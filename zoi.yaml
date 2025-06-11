@@ -10,6 +10,8 @@ commands:
     run: "./build/build-all"
   - cmd: "archive"
     run: "./build/archive"
+  - cmd: "publish"
+    run: "./build/publish"
 
 environments:
   - name: "Development"

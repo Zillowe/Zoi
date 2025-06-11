@@ -3,9 +3,10 @@ test
 tests
 build/compiled
 build/build
-build/archives
+build/archived
 build/build-all
 build/archive
+build/publish
 
 # Added by GCT
 gct.yaml

@@ -8,7 +8,7 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 COMPILED_DIR="./build/compiled"
-ARCHIVE_DIR="./build/archives"
+ARCHIVE_DIR="./build/archived"
 CHECKSUM_FILE="${ARCHIVE_DIR}/checksums.txt"
 
 if [ ! -d "$COMPILED_DIR" ]; then

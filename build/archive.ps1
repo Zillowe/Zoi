@@ -1,7 +1,7 @@
 $ErrorActionPreference = "Stop"
 
 $CompiledDir = "build/compiled"
-$ArchiveDir = "build/archives"
+$ArchiveDir = "build/archived"
 $ChecksumFile = Join-Path $ArchiveDir "checksums.txt"
 $7zipPath = ""
 
