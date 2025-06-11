@@ -20,8 +20,8 @@ Here are the guidelines to follow:
 --- GUIDELINES END ---
 
 Follow these rules:
-1.  **Structure:** Use Markdown with headings for different categories (e.g., ### ✨ Features, ### 🐛 Bug Fixes, ### 🚀 Performance).
-2.  **Clarity:** Write in the present tense (e.g., "Add feature" not "Added feature").
+1.  **Structure:** Use Markdown with headings for different categories (e.g. ### ✨ Features, ### 🐛 Bug Fixes, ### 🚀 Performance).
+2.  **Clarity:** Write in the present tense (e.g. "Add feature" not "Added feature").
 3.  **Focus:** Emphasize user-facing changes. Ignore minor code-quality improvements or refactoring unless they have a direct impact.
 4.  **Conciseness:** Use bullet points for individual changes.
 

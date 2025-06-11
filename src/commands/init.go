@@ -59,13 +59,19 @@ func InitCommand() {
 	}
 
 	newConfig := config.Config{
-		Name:       initModel.Name,
-		Provider:   initModel.Provider,
-		Model:      initModel.Model,
-		APIKey:     initModel.APIKey,
-		Endpoint:   initModel.Endpoint,
-		Commits:    config.GuidesConfig{Paths: commitGuidePaths},
-		Changelogs: config.GuidesConfig{Paths: changelogGuidePaths},
+		Name:               initModel.Name,
+		Provider:           initModel.Provider,
+		Model:              initModel.Model,
+		APIKey:             initModel.APIKey,
+		Endpoint:           initModel.Endpoint,
+		Commits:            config.GuidesConfig{Paths: commitGuidePaths},
+		Changelogs:         config.GuidesConfig{Paths: changelogGuidePaths},
+		GCPProjectID:       initModel.GCPProjectID,
+		GCPRegion:          initModel.GCPRegion,
+		AWSRegion:          initModel.AWSRegion,
+		AWSAccessKeyID:     initModel.AWSAccessKeyID,
+		AWSSecretAccessKey: initModel.AWSSecretAccessKey,
+		AzureResourceName:  initModel.AzureResourceName,
 	}
 
 	yamlData, err := yaml.Marshal(&newConfig)
