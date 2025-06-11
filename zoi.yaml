@@ -6,6 +6,8 @@ packages:
 commands:
   - cmd: "build"
     run: "./build/build"
+  - cmd: "build-r"
+    run: "./build/build-release"
   - cmd: "build-all"
     run: "./build/build-all"
   - cmd: "archive"
