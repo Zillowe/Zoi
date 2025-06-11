@@ -13,13 +13,19 @@ type GuidesConfig struct {
 }
 
 type Config struct {
-	Name       string       `yaml:"name"`
-	Provider   string       `yaml:"provider"`
-	Model      string       `yaml:"model"`
-	APIKey     string       `yaml:"api"`
-	Endpoint   string       `yaml:"endpoint,omitempty"`
-	Commits    GuidesConfig `yaml:"commits"`
-	Changelogs GuidesConfig `yaml:"changelogs"`
+	Name               string       `yaml:"name"`
+	Provider           string       `yaml:"provider"`
+	Model              string       `yaml:"model"`
+	APIKey             string       `yaml:"api"`
+	Endpoint           string       `yaml:"endpoint,omitempty"`
+	Commits            GuidesConfig `yaml:"commits"`
+	Changelogs         GuidesConfig `yaml:"changelogs"`
+	GCPProjectID       string       `yaml:"gcp_project_id,omitempty"`
+	GCPRegion          string       `yaml:"gcp_region,omitempty"`
+	AWSAccessKeyID     string       `yaml:"aws_access_key_id,omitempty"`
+	AWSSecretAccessKey string       `yaml:"aws_secret_access_key,omitempty"`
+	AWSRegion          string       `yaml:"aws_region,omitempty"`
+	AzureResourceName  string       `yaml:"azure_resource_name,omitempty"`
 }
 
 func LoadConfig() (*Config, error) {
