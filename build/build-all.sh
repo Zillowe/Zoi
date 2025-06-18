@@ -20,7 +20,6 @@ TARGETS=(
 )
 
 echo -e "${CYAN}🏗 Starting build process...${NC}"
-echo -e "${CYAN}▸ Version: ${VERSION}${NC}"
 echo -e "${CYAN}▸ Commit: ${COMMIT}${NC}\n"
 
 for target in "${TARGETS[@]}"; do

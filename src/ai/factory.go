@@ -20,6 +20,10 @@ var SupportedProviders = []string{
 	"Hugging Face",
 	"Amazon Bedrock",
 	"xAI",
+	"Cloudflare",
+	"Perplexity",
+	"Lambda",
+	"Groq",
 }
 
 func NewProvider(cfg *config.Config) (AIProvider, error) {
@@ -66,12 +70,23 @@ func NewProvider(cfg *config.Config) (AIProvider, error) {
 	case "amazonbedrock", "bedrock", "amazon", "aws":
 		return NewBedrockProvider(cfg.AWSAccessKeyID, cfg.AWSSecretAccessKey, cfg.AWSRegion, cfg.Model)
 
-	case "xai", "grok":
-		endpoint := "https://api.x.ai/v1"
-		if cfg.Endpoint != "" {
-			endpoint = cfg.Endpoint
+	case "xai", "grok", "x":
+		return NewOpenAICompatibleProvider(cfg.APIKey, cfg.Model, "https://api.x.ai/v1")
+
+	case "cloudflare", "cf":
+		if cfg.Endpoint == "" {
+			return nil, fmt.Errorf("cloudflare provider requires an 'endpoint' URL in your gct.yaml (e.g. https://api.cloudflare.com/client/v4/accounts/YOUR_ACCOUNT_ID/ai/v1)")
 		}
-		return NewOpenAICompatibleProvider(cfg.APIKey, cfg.Model, endpoint)
+		return NewOpenAICompatibleProvider(cfg.APIKey, cfg.Model, cfg.Endpoint)
+
+	case "perplexity", "pplx":
+		return NewOpenAICompatibleProvider(cfg.APIKey, cfg.Model, "https://api.perplexity.ai")
+
+	case "lambda", "lambdalabs":
+		return NewOpenAICompatibleProvider(cfg.APIKey, cfg.Model, "https://api.lambda-labs.com/v1")
+
+	case "groq":
+		return NewOpenAICompatibleProvider(cfg.APIKey, cfg.Model, "https://api.groq.com/openai/v1")
 
 	default:
 		return nil, fmt.Errorf(

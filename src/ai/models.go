@@ -7,7 +7,8 @@ type ModelPreset struct {
 }
 
 var ModelPresets = []ModelPreset{
-	{DisplayName: "Gemini 2.5 Flash Preview (via Google AI Studio)", Provider: "Google AI Studio", ModelName: "gemini-2.5-flash-preview-05-20"},
+	{DisplayName: "Gemini 2.5 Flash (via Google AI Studio)", Provider: "Google AI Studio", ModelName: "gemini-2.5-flash"},
+	{DisplayName: "Gemini 2.5 Flash Lite Prev (via Google AI Studio)", Provider: "Google AI Studio", ModelName: "gemini-2.5-flash-lite-preview-06-17"},
 	{DisplayName: "Gemini 2.0 Flash (via Google AI Studio)", Provider: "Google AI Studio", ModelName: "gemini-2.0-flash"},
 	{DisplayName: "Gemini 2.0 Flash Lite (via Google AI Studio)", Provider: "Google AI Studio", ModelName: "gemini-2.0-flash-lite"},
 	{DisplayName: "o4 Mini (via OpenAI)", Provider: "OpenAI", ModelName: "o4-mini"},

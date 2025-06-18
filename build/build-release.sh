@@ -16,6 +16,7 @@ go build -o "./build/compiled/gct" \
     ./src
 
 if [ $? -eq 0 ]; then
+    chmod +x ./build/compiled/gct
     echo -e "${GREEN}Build successful! Commit: $COMMIT${NC}"
 else
     echo -e "${RED}Build failed${NC}"
