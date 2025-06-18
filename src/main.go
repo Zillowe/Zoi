@@ -46,6 +46,16 @@ func main() {
 		return
 	}
 
+	if len(os.Args) >= 3 && os.Args[1] == "ai" && os.Args[2] == "pr" {
+		commands.AIPRCommand()
+		return
+	}
+
+	if len(os.Args) >= 3 && os.Args[1] == "ai" && os.Args[2] == "issue" {
+		commands.AIIssueCommand()
+		return
+	}
+
 	if len(os.Args) >= 3 && os.Args[1] == "commit" && os.Args[2] == "edit" {
 		commands.EditCommitCommand()
 		return

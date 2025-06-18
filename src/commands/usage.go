@@ -38,7 +38,9 @@ func PrintUsage() {
 	fmt.Printf("  %-18s      Generate a changelog entry from code changes\n", green("ai log [args]"))
 	fmt.Printf("    %s %s\n", faint("└─"), "For unstaged changes")
 	fmt.Printf("    %s %s\n", faint("  └─"), green("--staged"))
-	fmt.Printf("    %s %s\n\n", faint("  └─"), green("<commit|branch>"))
+	fmt.Printf("    %s %s\n", faint("  └─"), green("<commit|branch>"))
+	fmt.Printf("  %-18s     Summarize a pull request\n", green("ai pr <number>"))
+	fmt.Printf("  %-18s  Propose a solution for an issue\n\n", green("ai issue <number>"))
 
 	fmt.Printf("%s\n", yellow("GLOBAL FLAGS"))
 	fmt.Printf("  %s, %s      Show GCT version information\n", green("-v"), green("--version"))
