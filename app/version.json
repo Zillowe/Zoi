@@ -1,0 +1,12 @@
+{
+  "latest": {
+    "production": {
+      "status": "Beta",
+      "version": "1.0.1"
+    },
+    "development": {
+      "status": "Beta",
+      "version": "2.0.0"
+    }
+  }
+}

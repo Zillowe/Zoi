@@ -1,0 +1,15 @@
+etc
+test
+build/compiled
+build/archived
+build/release
+build/release-all
+packages
+config.mk
+
+# Added by GCT
+gct.yaml
+/.gct/
+
+# Added by cargo
+/target

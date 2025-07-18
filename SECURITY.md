@@ -1,0 +1,23 @@
+# Zoi Security Policy
+
+## Supported Versions
+
+| Version           | Supported          |
+| ----------------- | ------------------ |
+| Prod. Beta 2.X.X  | :white_check_mark: |
+
+## Security Updates
+
+We take security seriously. Security updates are released as soon as possible after a vulnerability is discovered and verified.
+
+## Reporting a Vulnerability
+
+If you discover a security vulnerability, please follow these steps:
+
+1. **DO NOT** disclose the vulnerability publicly.
+2. Send a detailed report to: [GitLab Issues*](https://gitlab.com/Zillowe/Zillwen/Zusty/Zoi/-/issues/new) [GitLab Vulnerability](https://gitlab.com/Zillowe/Zillwen/Zusty/Zoi/-/security/vulnerabilities/new) or [@ZilloweZ:matrix.org](https://matrix.to/#/@ZilloweZ:matrix.org).
+3. Include in your report:
+   - A description of the vulnerability
+   - Steps to reproduce the issue
+   - Potential impact
+4. If you're creating an issue make sure you turn on confidentiality.
