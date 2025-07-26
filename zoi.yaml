@@ -1,0 +1,30 @@
+name: "Zoi"
+packages:
+  - name: "rustc"
+    check: "rustc --version"
+  - name: "cargo"
+    check: "cargo --version"
+
+commands:
+  - cmd: "build"
+    run: "./build/build.sh"
+  - cmd: "build-r"
+    run: "./build/build-release.sh"
+  - cmd: "build-all"
+    run: "./build/build-all.sh"
+  - cmd: "archive"
+    run: "./build/archive.sh"
+  - cmd: "install"
+    run: "cargo clean && ./configure && make && sudo make install"
+  - cmd: "deps"
+    run: "cargo machete"
+  - cmd: "prepare"
+    run: "cargo clippy --all-targets --fix --allow-dirty --allow-staged && cargo check --verbose"
+
+environments:
+  - name: "Development"
+    cmd: "dev"
+    run: ["./build/build.sh"]
+  - name: "Production"
+    cmd: "prod"
+    run: ["./build/build-all.sh"]
