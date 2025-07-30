@@ -1,0 +1,45 @@
+name: zoi
+repo: main
+versions:
+  stable: https://gitlab.com/Zillowe/Zillwen/Zusty/Zoi/-/raw/main/app/version.json
+  public: https://gitlab.com/Zillowe/Zillwen/Zusty/Zoi/-/raw/main/app/version.json
+description: Universal Package Manager & Environment Setup Tool
+website: https://gitlab.com/Zillowe/Zillwen/Zusty/Zoi
+git: https://gitlab.com/Zillowe/Zillwen/Zusty/Zoi.git
+maintainer:
+  name: ZilloweZ
+  email: zillowez@gmail.com
+license: Apache-2.0
+updater: script
+
+installation:
+  - type: com_binary
+    url: https://gitlab.com/Zillowe/Zillwen/Zusty/Zoi/-/releases/{version}/downloads/zoi-{platform}.{platformComExt}
+    platforms: [linux, macos, windows-amd64]
+    checksums: https://gitlab.com/Zillowe/Zillwen/Zusty/Zoi/-/releases/{version}/downloads/checksums.txt
+
+  - type: script
+    url: "https://gitlab.com/Zillowe/Zillwen/Zusty/Zoi/-/raw/main/app/install.{platformExt}"
+    platforms: [linux, macos, windows-amd64]
+    checksums: https://gitlab.com/Zillowe/Zillwen/Zusty/Zoi/-/raw/main/app/checksums.txt
+
+  - type: source
+    url: "{git}"
+    platforms: [all]
+    commands:
+      - ./configure --prefix={prefix}
+      - make
+      - sudo make install
+      - make install-completions
+
+dependencies:
+  runtime:
+    - "native:git"
+
+  build:
+    - "native:rust"
+    - "native:cargo"
+    - "native:make"
+    - "native:gcc"
+    - "native:pkg-config"
+    - "native:openssl-dev"
