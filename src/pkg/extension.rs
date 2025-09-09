@@ -1,3 +1,4 @@
+use crate::pkg::config::GIT_REGISTRY;
 use crate::pkg::{config, local, resolve, types};
 use std::error::Error;
 use std::fs;
@@ -118,9 +119,8 @@ pub fn remove(ext_name: &str, _yes: bool) -> Result<(), Box<dyn Error>> {
                     }
                 }
                 types::ExtensionChange::RegistryRepo { add: _ } => {
-                    let default_registry = "https://gitlab.com/Zillowe/Zillwen/Zusty/Zoi-Pkgs.git";
                     println!("Setting registry back to default");
-                    if let Err(e) = config::set_registry(default_registry) {
+                    if let Err(e) = config::set_registry(GIT_REGISTRY) {
                         eprintln!("Warning: failed to set registry to default: {}", e);
                     }
                 }
