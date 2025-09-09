@@ -6,6 +6,8 @@ use std::env;
 use std::error::Error;
 use std::fs;
 
+const REPO_FILE_NAME: &str = "zoi.yaml";
+
 #[derive(Debug, Deserialize)]
 struct RepoFile {
     package: String,
@@ -26,25 +28,22 @@ pub fn run(
 
     let (provider, repo_path) = parse_repo_spec(repo_spec)?;
 
-    let repo_file_names = ["zoi.yaml"];
-    let mut repo_file_content: Option<String> = None;
-    let mut used_url = String::new();
-
-    for file_name in &repo_file_names {
-        if let Ok(url) = get_repo_file_url(&provider, &repo_path, file_name) {
+    let (repo_file_content, used_url) =
+        match get_repo_file_url(&provider, &repo_path, REPO_FILE_NAME).and_then(|url| {
             println!("Attempting to fetch repo config from: {}", url);
-            if let Ok(content_res) = reqwest::blocking::get(&url)
-                && content_res.status().is_success()
-            {
-                repo_file_content = Some(content_res.text()?);
-                used_url = url;
-                break;
+            let content_res = reqwest::blocking::get(&url)?;
+            Ok((url, content_res))
+        }) {
+            Ok((url, content_res)) if content_res.status().is_success() => {
+                (content_res.text()?, url)
             }
-        }
-    }
+            _ => {
+                return Err(
+                    "Could not find zoi.yaml in the repository on main/master branches.".into(),
+                );
+            }
+        };
 
-    let repo_file_content = repo_file_content
-        .ok_or("Could not find zoi.yaml in the repository on main/master branches.")?;
     println!("Using repo config from: {}", used_url.cyan());
 
     let repo_file: RepoFile = serde_yaml::from_str(&repo_file_content)?;
