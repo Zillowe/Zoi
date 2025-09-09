@@ -264,23 +264,29 @@ fn ensure_binary_is_cached(pkg: &types::Package) -> Result<PathBuf, Box<dyn Erro
 
         let temp_dir = Builder::new().prefix("zoi-exec-ext").tempdir()?;
 
-        if com_ext == "zip" {
-            let mut archive = ZipArchive::new(Cursor::new(downloaded_bytes))?;
-            archive.extract(temp_dir.path())?;
-        } else if com_ext == "tar.zst" {
-            let tar = ZstdDecoder::new(Cursor::new(downloaded_bytes))?;
-            let mut archive = Archive::new(tar);
-            archive.unpack(temp_dir.path())?;
-        } else if com_ext == "tar.xz" {
-            let tar = XzDecoder::new(Cursor::new(downloaded_bytes));
-            let mut archive = Archive::new(tar);
-            archive.unpack(temp_dir.path())?;
-        } else if com_ext == "tar.gz" {
-            let tar = GzDecoder::new(Cursor::new(downloaded_bytes));
-            let mut archive = Archive::new(tar);
-            archive.unpack(temp_dir.path())?;
-        } else {
-            return Err(format!("Unsupported compression format: {}", com_ext).into());
+        match com_ext {
+            "zip" => {
+                let mut archive = ZipArchive::new(Cursor::new(downloaded_bytes))?;
+                archive.extract(temp_dir.path())?;
+            }
+            "tar.zst" => {
+                let tar = ZstdDecoder::new(Cursor::new(downloaded_bytes))?;
+                let mut archive = Archive::new(tar);
+                archive.unpack(temp_dir.path())?;
+            }
+            "tar.xz" => {
+                let tar = XzDecoder::new(Cursor::new(downloaded_bytes));
+                let mut archive = Archive::new(tar);
+                archive.unpack(temp_dir.path())?;
+            }
+            "tar.gz" => {
+                let tar = GzDecoder::new(Cursor::new(downloaded_bytes));
+                let mut archive = Archive::new(tar);
+                archive.unpack(temp_dir.path())?;
+            }
+            _ => {
+                return Err(format!("Unsupported compression format: {}", com_ext).into());
+            }
         }
 
         let binary_name = &pkg.name;
