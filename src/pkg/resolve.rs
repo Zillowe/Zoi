@@ -136,7 +136,11 @@ fn find_package_in_db(request: &PackageRequest) -> Result<ResolvedSource, Box<dy
             if path.exists() {
                 let pkg: types::Package =
                     crate::pkg::lua_parser::parse_lua_package(path.to_str().unwrap())?;
-                let major_repo = repo_name.split('/').next().unwrap_or("").to_lowercase();
+                let major_repo = repo_name
+                    .split('/')
+                    .next()
+                    .unwrap_or_default()
+                    .to_lowercase();
                 let source_type = if major_repo == "core"
                     || major_repo == "main"
                     || major_repo == "extra"
@@ -171,7 +175,11 @@ fn find_package_in_db(request: &PackageRequest) -> Result<ResolvedSource, Box<dy
                 if pkg_file_path.exists() {
                     let pkg: types::Package =
                         crate::pkg::lua_parser::parse_lua_package(pkg_file_path.to_str().unwrap())?;
-                    let major_repo = repo_name.split('/').next().unwrap_or("").to_lowercase();
+                    let major_repo = repo_name
+                        .split('/')
+                        .next()
+                        .unwrap_or_default()
+                        .to_lowercase();
                     let source_type = if major_repo == "core"
                         || major_repo == "main"
                         || major_repo == "extra"

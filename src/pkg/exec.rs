@@ -17,7 +17,7 @@ use zip::ZipArchive;
 use zstd::stream::read::Decoder as ZstdDecoder;
 
 fn get_filename_from_url(url: &str) -> &str {
-    url.split('/').next_back().unwrap_or("")
+    url.split('/').next_back().unwrap_or_default()
 }
 
 fn get_expected_checksum(
@@ -309,7 +309,10 @@ fn ensure_binary_is_cached(pkg: &types::Package) -> Result<PathBuf, Box<dyn Erro
                     .to_path_buf();
                 let rel_str = rel.to_string_lossy().replace('\\', "/");
                 let bp_norm = bp.replace('\\', "/");
-                let file_name = path.file_name().and_then(|o| o.to_str()).unwrap_or("");
+                let file_name = path
+                    .file_name()
+                    .and_then(|o| o.to_str())
+                    .unwrap_or_default();
                 let mut matched = rel_str == bp_norm;
                 if !matched && !bp_norm.contains('/') {
                     matched = file_name == bp_norm

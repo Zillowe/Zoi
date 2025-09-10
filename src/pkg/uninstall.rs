@@ -17,7 +17,7 @@ fn run_post_uninstall_hooks(pkg: &types::Package) -> Result<(), Box<dyn Error>> 
     if let Some(hooks) = &pkg.post_uninstall {
         println!("\n{}", "Running post-uninstallation commands...".bold());
         let platform = utils::get_platform()?;
-        let version = pkg.version.as_deref().unwrap_or("");
+        let version = pkg.version.as_deref().unwrap_or_default();
 
         for hook in hooks {
             if utils::is_platform_compatible(&platform, &hook.platforms) {

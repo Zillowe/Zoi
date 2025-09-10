@@ -912,7 +912,7 @@ fn install_dependency(
             };
 
             let platform = utils::get_platform()?;
-            let os = platform.split('-').next().unwrap_or("");
+            let os = platform.split('-').next().unwrap_or_default();
             let platform_ext = if os == "windows" { "ps1" } else { "sh" };
 
             let final_url = format!("{}.{}", url, platform_ext);

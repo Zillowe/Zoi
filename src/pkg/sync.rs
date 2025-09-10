@@ -46,7 +46,7 @@ fn sync_git_repos(verbose: bool) -> Result<(), Box<dyn std::error::Error>> {
             url.trim_end_matches('/')
                 .split('/')
                 .next_back()
-                .unwrap_or("")
+                .unwrap_or_default()
                 .trim_end_matches(".git")
                 .to_string()
         })

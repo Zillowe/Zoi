@@ -42,7 +42,7 @@ fn print_beautiful(pkg: &crate::pkg::types::Package, installed_manifest: Option<
     println!(
         "{} {} - {}",
         pkg.name.bold().green(),
-        pkg.version.as_deref().unwrap_or("").dimmed(),
+        pkg.version.as_deref().unwrap_or_default().dimmed(),
         pkg.repo
     );
     if let Some(website) = &pkg.website {

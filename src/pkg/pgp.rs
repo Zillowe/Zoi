@@ -169,7 +169,7 @@ pub fn list_keys() -> Result<(), Box<dyn Error>> {
                 .ok()
                 .flatten()
                 .unwrap_or("[invalid name]");
-            let email = userid_packet.email().ok().flatten().unwrap_or("");
+            let email = userid_packet.email().ok().flatten().unwrap_or_default();
 
             if !email.is_empty() {
                 println!("  {}: {} <{}>", "UserID".cyan(), name, email);
@@ -200,13 +200,13 @@ pub fn search_keys(term: &str) -> Result<(), Box<dyn Error>> {
                     .name()
                     .ok()
                     .flatten()
-                    .unwrap_or("")
+                    .unwrap_or_default()
                     .to_lowercase();
                 let uid_email = userid_packet
                     .email()
                     .ok()
                     .flatten()
-                    .unwrap_or("")
+                    .unwrap_or_default()
                     .to_lowercase();
 
                 if uid_name.contains(&term_lower) || uid_email.contains(&term_lower) {
@@ -247,7 +247,7 @@ pub fn search_keys(term: &str) -> Result<(), Box<dyn Error>> {
                 .ok()
                 .flatten()
                 .unwrap_or("[invalid name]");
-            let email = userid_packet.email().ok().flatten().unwrap_or("");
+            let email = userid_packet.email().ok().flatten().unwrap_or_default();
 
             if !email.is_empty() {
                 println!("  {}: {} <{}>", "UserID".cyan(), name, email);

@@ -40,7 +40,10 @@ pub fn install_files(source_dir: &Path, pkg: &types::Package) -> Result<(), Box<
     for entry in WalkDir::new(source_dir).into_iter().filter_map(|e| e.ok()) {
         if entry.file_type().is_file() {
             let path = entry.path();
-            let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("");
+            let extension = path
+                .extension()
+                .and_then(|s| s.to_str())
+                .unwrap_or_default();
             match extension {
                 "so" | "dll" | "a" | "lib" => {
                     fs::copy(path, lib_dir.join(path.file_name().unwrap()))?;

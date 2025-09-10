@@ -134,7 +134,7 @@ pub fn run(package_file: &Path, install_type: Option<String>) -> Result<(), Box<
                 .ok_or("Could not find chosen install method in platform-specific parse")?;
 
             let url = method_for_platform.url.clone();
-            let filename = url.split('/').next_back().unwrap_or("").to_string();
+            let filename = url.split('/').next_back().unwrap_or_default().to_string();
             let checksum = checksum_map.get(&filename).cloned();
 
             let signature_url = if let Some(sigs) = &method_for_platform.sigs {

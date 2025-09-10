@@ -106,7 +106,7 @@ pub fn remove(ext_name: &str, _yes: bool) -> Result<(), Box<dyn Error>> {
                         .trim_end_matches('/')
                         .split('/')
                         .next_back()
-                        .unwrap_or("")
+                        .unwrap_or_default()
                         .trim_end_matches(".git");
                     if !repo_name.is_empty() {
                         println!("Removing git repository: {}", repo_name);

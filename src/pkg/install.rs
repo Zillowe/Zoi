@@ -586,7 +586,7 @@ fn run_script_install_commands(pkg: &types::Package) -> Result<(), Box<dyn Error
             "Running script...".bold()
         );
         let platform = utils::get_platform()?;
-        let _version = pkg.version.as_deref().unwrap_or("");
+        let _version = pkg.version.as_deref().unwrap_or_default();
 
         for hook in hooks {
             if utils::is_platform_compatible(&platform, &hook.platforms) {
@@ -890,7 +890,7 @@ fn try_meta_build_install(
     let archive_filename = format!(
         "{}-{}-{}.pkg.tar.zst",
         pkg.name,
-        pkg.version.as_deref().unwrap_or(""),
+        pkg.version.as_deref().unwrap_or_default(),
         platform
     );
     let archive_path = meta_path.with_file_name(archive_filename);
@@ -925,13 +925,13 @@ fn run_default_flow(
 
         for url_template in urls_to_try {
             let (os, arch) = (
-                platform.split('-').next().unwrap_or(""),
-                platform.split('-').nth(1).unwrap_or(""),
+                platform.split('-').next().unwrap_or_default(),
+                platform.split('-').nth(1).unwrap_or_default(),
             );
             let url_dir = url_template
                 .replace("{os}", os)
                 .replace("{arch}", arch)
-                .replace("{version}", pkg.version.as_deref().unwrap_or(""))
+                .replace("{version}", pkg.version.as_deref().unwrap_or_default())
                 .replace("{repo}", &pkg.repo);
 
             let archive_filename = format!("{}.pkg.tar.zst", pkg.name);
@@ -1064,7 +1064,7 @@ fn write_manifest(
 }
 
 fn get_filename_from_url(url: &str) -> &str {
-    url.split('/').next_back().unwrap_or("")
+    url.split('/').next_back().unwrap_or_default()
 }
 
 fn get_expected_checksum(
@@ -1283,7 +1283,7 @@ fn handle_com_binary_install(
     pkg: &types::Package,
 ) -> Result<(), Box<dyn Error>> {
     let platform = utils::get_platform()?;
-    let target_os = platform.split('-').next().unwrap_or("");
+    let target_os = platform.split('-').next().unwrap_or_default();
     let os = std::env::consts::OS;
 
     let com_ext = method
@@ -1424,7 +1424,10 @@ fn handle_com_binary_install(
                 .to_path_buf();
             let rel_str = rel.to_string_lossy().replace('\\', "/");
             let bp_norm = bp.replace('\\', "/");
-            let file_name = path.file_name().and_then(|o| o.to_str()).unwrap_or("");
+            let file_name = path
+                .file_name()
+                .and_then(|o| o.to_str())
+                .unwrap_or_default();
             let mut matched = rel_str == bp_norm;
             if !matched && !bp_norm.contains('/') {
                 matched = file_name == bp_norm;
@@ -1636,7 +1639,7 @@ fn handle_binary_install(
                 .into());
             }
             let stdout = String::from_utf8_lossy(&output.stdout);
-            let mount_path_line = stdout.lines().last().unwrap_or("");
+            let mount_path_line = stdout.lines().last().unwrap_or_default();
             let mount_path_parts: Vec<&str> = mount_path_line.split('\t').collect();
             let mount_path = PathBuf::from(mount_path_parts.last().unwrap_or(&"").trim());
 

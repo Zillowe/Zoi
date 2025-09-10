@@ -588,7 +588,7 @@ fn build_for_platform(
             let filename = Path::new(&asset.url)
                 .extension()
                 .and_then(|s| s.to_str())
-                .unwrap_or("");
+                .unwrap_or_default();
             match filename {
                 "zip" => ZipArchive::new(archive_cursor)?.extract(&data_dir)?,
                 "zst" => Archive::new(ZstdDecoder::new(archive_cursor)?).unpack(&data_dir)?,
