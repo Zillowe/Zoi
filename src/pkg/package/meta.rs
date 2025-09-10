@@ -4,6 +4,16 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fs;
 use std::path::Path;
+use std::string::ToString;
+
+const ALL_PLATFORMS: &[&str] = &[
+    "linux-amd64",
+    "linux-arm64",
+    "windows-amd64",
+    "windows-arm64",
+    "macos-amd64",
+    "macos-arm64",
+];
 
 pub fn run(package_file: &Path, install_type: Option<String>) -> Result<(), Box<dyn Error>> {
     println!("Generating metadata for: {}", package_file.display());
@@ -44,18 +54,12 @@ pub fn run(package_file: &Path, install_type: Option<String>) -> Result<(), Box<
         let mut build_commands_map = HashMap::new();
         let mut binary_path_map = HashMap::new();
 
-        let platforms_to_process = if best_method_template.platforms.contains(&"all".to_string()) {
-            vec![
-                "linux-amd64",
-                "linux-arm64",
-                "windows-amd64",
-                "windows-arm64",
-                "macos-amd64",
-                "macos-arm64",
-            ]
-            .into_iter()
-            .map(String::from)
-            .collect()
+        let platforms_to_process = if best_method_template
+            .platforms
+            .iter()
+            .any(|platform| platform == "all")
+        {
+            ALL_PLATFORMS.into_iter().map(ToString::to_string).collect()
         } else {
             best_method_template.platforms.clone()
         };
@@ -107,18 +111,12 @@ pub fn run(package_file: &Path, install_type: Option<String>) -> Result<(), Box<
             };
 
         let mut assets = Vec::new();
-        let platforms_to_process = if best_method_template.platforms.contains(&"all".to_string()) {
-            vec![
-                "linux-amd64",
-                "linux-arm64",
-                "windows-amd64",
-                "windows-arm64",
-                "macos-amd64",
-                "macos-arm64",
-            ]
-            .into_iter()
-            .map(String::from)
-            .collect()
+        let platforms_to_process = if best_method_template
+            .platforms
+            .iter()
+            .any(|platform| platform == "all")
+        {
+            ALL_PLATFORMS.into_iter().map(ToString::to_string).collect()
         } else {
             best_method_template.platforms.clone()
         };
