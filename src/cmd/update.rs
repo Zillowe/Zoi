@@ -1,12 +1,10 @@
-use crate::pkg::{config, hooks, install, local, pin, resolve, sync, types};
+use crate::pkg::{hooks, install, local, pin, resolve, sync, transaction, types};
 use crate::utils;
 use anyhow::{Result, anyhow};
 use colored::*;
 use indicatif::{ProgressBar, ProgressStyle};
 use rayon::prelude::*;
-use semver::Version;
 use std::collections::HashSet;
-use std::fs;
 use std::sync::Mutex;
 
 pub fn run(all: bool, package_names: &[String], yes: bool) {
@@ -113,9 +111,10 @@ fn run_update_single_logic(package_name: &str, yes: bool) -> Result<()> {
     }
 
     let mode = install::InstallMode::PreferPrebuilt;
+    let tx = transaction::Transaction::new();
 
     let processed_deps = Mutex::new(HashSet::new());
-    install::run_installation(
+    if let Err(e) = install::run_installation(
         package_name,
         mode,
         true,
@@ -125,19 +124,29 @@ fn run_update_single_logic(package_name: &str, yes: bool) -> Result<()> {
         &processed_deps,
         Some(manifest.scope),
         None,
-    )?;
+        Some(tx.clone()),
+    ) {
+        let _ = tx.rollback();
+        return Err(e);
+    }
 
-    cleanup_old_versions(
-        &new_pkg.name,
+    // Defer cleanup until commit
+    tx.defer_cleanup(
         manifest.scope,
-        &new_pkg.repo,
         registry_handle.as_deref().unwrap_or("local"),
-    )?;
+        &new_pkg.repo,
+        &new_pkg.name,
+    );
 
     if let Some(hooks) = &new_pkg.hooks
         && let Err(e) = hooks::run_hooks(hooks, hooks::HookType::PostUpgrade)
     {
+        let _ = tx.rollback();
         return Err(anyhow!("Post-upgrade hook failed: {}", e));
+    }
+
+    if let Err(e) = tx.commit() {
+        return Err(anyhow!("Failed to finalize update: {}", e));
     }
 
     println!("\n{}", "Update complete.".green());
@@ -215,6 +224,9 @@ fn run_update_all_logic(yes: bool) -> Result<()> {
     }
 
     let processed_deps = Mutex::new(HashSet::new());
+    let tx = transaction::Transaction::new();
+
+    let failures = Mutex::new(Vec::<String>::new());
 
     packages_to_upgrade
         .par_iter()
@@ -234,6 +246,7 @@ fn run_update_all_logic(yes: bool) -> Result<()> {
                     source,
                     e
                 );
+                failures.lock().unwrap().push(source.clone());
                 return;
             }
 
@@ -248,19 +261,20 @@ fn run_update_all_logic(yes: bool) -> Result<()> {
                 &processed_deps,
                 Some(*scope),
                 None,
+                Some(tx.clone()),
             ) {
                 eprintln!("Failed to upgrade {}: {}", source, e);
+                failures.lock().unwrap().push(source.clone());
                 return;
             }
 
-            if let Err(e) = cleanup_old_versions(
-                &new_pkg.name,
+            // Defer cleanup to commit
+            tx.defer_cleanup(
                 *scope,
-                &new_pkg.repo,
                 registry_handle.as_deref().unwrap_or("local"),
-            ) {
-                eprintln!("Failed to clean up old versions for {}: {}", source, e);
-            }
+                &new_pkg.repo,
+                &new_pkg.name,
+            );
 
             if let Some(hooks) = &new_pkg.hooks
                 && let Err(e) = hooks::run_hooks(hooks, hooks::HookType::PostUpgrade)
@@ -271,59 +285,18 @@ fn run_update_all_logic(yes: bool) -> Result<()> {
                     source,
                     e
                 );
+                failures.lock().unwrap().push(source.clone());
             }
         });
 
+    let failures = failures.into_inner().unwrap();
+    if !failures.is_empty() {
+        let _ = tx.rollback();
+        return Err(anyhow!("One or more upgrades failed."));
+    }
+
+    tx.commit()?;
+
     println!("\n{}", "Upgrade complete.".green());
-    Ok(())
-}
-
-fn cleanup_old_versions(
-    package_name: &str,
-    scope: types::Scope,
-    repo: &str,
-    registry_handle: &str,
-) -> Result<()> {
-    let config = config::read_config()?;
-    let rollback_enabled = config.rollback_enabled;
-
-    let package_dir = local::get_package_dir(scope, registry_handle, repo, package_name)?;
-
-    let mut versions = Vec::new();
-    if let Ok(entries) = fs::read_dir(&package_dir) {
-        for entry in entries.flatten() {
-            let path = entry.path();
-            if path.is_dir()
-                && let Some(version_str) = path.file_name().and_then(|s| s.to_str())
-                && version_str != "latest"
-                && let Ok(version) = Version::parse(version_str)
-            {
-                versions.push(version);
-            }
-        }
-    }
-
-    if versions.is_empty() {
-        return Ok(());
-    }
-
-    versions.sort();
-
-    let versions_to_keep = if rollback_enabled { 2 } else { 1 };
-
-    if versions.len() > versions_to_keep {
-        let num_to_delete = versions.len() - versions_to_keep;
-        let versions_to_delete = &versions[..num_to_delete];
-
-        println!("Cleaning up old versions...");
-        for version in versions_to_delete {
-            let version_dir_to_delete = package_dir.join(version.to_string());
-            println!(" - Removing {}", version_dir_to_delete.display());
-            if version_dir_to_delete.exists() {
-                fs::remove_dir_all(version_dir_to_delete)?;
-            }
-        }
-    }
-
     Ok(())
 }

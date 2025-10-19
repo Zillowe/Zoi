@@ -1,4 +1,4 @@
-use crate::pkg::{install, types};
+use crate::pkg::{install, transaction, types};
 use anyhow::{Result, anyhow};
 use colored::*;
 use serde::Deserialize;
@@ -18,6 +18,7 @@ pub fn run(
     all_optional: bool,
     yes: bool,
     scope: Option<crate::cli::SetupScope>,
+    tx: Option<transaction::SharedTransaction>,
 ) -> Result<()> {
     println!(
         "Installing from git repository: {}",
@@ -81,6 +82,7 @@ pub fn run(
             &processed_deps,
             scope_override,
             None,
+            tx,
         );
         fs::remove_file(temp_path)?;
         result
@@ -108,6 +110,7 @@ pub fn run(
             &processed_deps,
             scope_override,
             None,
+            tx,
         );
         fs::remove_file(temp_path)?;
         result
@@ -126,6 +129,7 @@ pub fn run(
             &processed_deps,
             scope_override,
             None,
+            tx,
         )
     }
 }

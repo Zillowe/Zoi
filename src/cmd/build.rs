@@ -1,4 +1,4 @@
-use crate::pkg::{install, local, resolve, types, types::InstallReason};
+use crate::pkg::{install, local, resolve, transaction, types, types::InstallReason};
 use crate::utils;
 use colored::*;
 use std::collections::HashSet;
@@ -33,6 +33,7 @@ pub fn run(sources: &[String], force: bool, yes: bool) {
                 }
 
                 let processed_deps = Mutex::new(HashSet::new());
+                let tx = transaction::Transaction::new();
                 if let Err(e) = install::run_installation(
                     resolved_source.path.to_str().unwrap(),
                     install::InstallMode::ForceBuild,
@@ -43,8 +44,14 @@ pub fn run(sources: &[String], force: bool, yes: bool) {
                     &processed_deps,
                     None,
                     None,
+                    Some(tx.clone()),
                 ) {
+                    let _ = tx.rollback();
                     eprintln!("\n{}: {}", "Build failed".red().bold(), e);
+                    std::process::exit(1);
+                }
+                if let Err(e) = tx.commit() {
+                    eprintln!("\n{}: {}", "Build finalize failed".red().bold(), e);
                     std::process::exit(1);
                 }
             }

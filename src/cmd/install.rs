@@ -1,4 +1,4 @@
-use crate::pkg::{config, install, resolve, types};
+use crate::pkg::{config, install, resolve, transaction, types};
 use crate::project;
 use colored::Colorize;
 use rayon::prelude::*;
@@ -28,6 +28,9 @@ pub fn run(
         scope_override = Some(types::Scope::User);
     }
 
+    // Begin a transaction for the whole operation
+    let tx = transaction::Transaction::new();
+
     if sources.is_empty()
         && repo.is_none()
         && let Ok(config) = project::config::load()
@@ -53,6 +56,7 @@ pub fn run(
                 &processed_deps,
                 local_scope,
                 None,
+                Some(tx.clone()),
             ) {
                 eprintln!(
                     "{}: Failed to install '{}': {}",
@@ -73,6 +77,7 @@ pub fn run(
 
         let failed_packages = failed_packages.into_inner().unwrap();
         if !failed_packages.is_empty() {
+            let _ = tx.rollback();
             eprintln!(
                 "\n{}: The following packages failed to install:",
                 "Error".red().bold()
@@ -81,6 +86,10 @@ pub fn run(
                 eprintln!("  - {}", pkg);
             }
             std::process::exit(1);
+        }
+
+        if let Err(e) = tx.commit() {
+            eprintln!("Warning: failed to finalize installation: {}", e);
         }
 
         let mut new_lockfile_packages = std::collections::HashMap::new();
@@ -141,9 +150,15 @@ pub fn run(
             types::Scope::Project => unreachable!(),
         });
 
-        if let Err(e) =
-            crate::pkg::repo_install::run(&repo_spec, force, all_optional, yes, repo_install_scope)
-        {
+        if let Err(e) = crate::pkg::repo_install::run(
+            &repo_spec,
+            force,
+            all_optional,
+            yes,
+            repo_install_scope,
+            Some(tx.clone()),
+        ) {
+            let _ = tx.rollback();
             eprintln!(
                 "{}: Failed to install from repo '{}': {}",
                 "Error".red().bold(),
@@ -151,6 +166,9 @@ pub fn run(
                 e
             );
             std::process::exit(1);
+        }
+        if let Err(e) = tx.commit() {
+            eprintln!("Warning: failed to finalize installation: {}", e);
         }
         return;
     }
@@ -235,13 +253,33 @@ pub fn run(
             stage.len()
         );
 
+        let tx_stage = tx.clone();
         stage.par_iter().for_each(|pkg_id| {
             let node = graph.nodes.get(pkg_id).unwrap();
 
             println!("Installing {}...", node.pkg.name.cyan());
 
+            // Register pre-state for the package
+            if let Err(e) = tx_stage.register_pre_state(
+                node.pkg.scope,
+                &node.registry_handle,
+                &node.pkg.repo,
+                &node.pkg.name,
+            ) {
+                eprintln!(
+                    "Warning: failed to snapshot pre-state for {}: {}",
+                    node.pkg.name, e
+                );
+            }
+
             match install::installer::install_node(node, mode, None) {
                 Ok(_) => {
+                    tx_stage.register_success(
+                        node.pkg.scope,
+                        &node.registry_handle,
+                        &node.pkg.repo,
+                        &node.pkg.name,
+                    );
                     println!("Successfully installed {}", node.pkg.name.green());
 
                     if matches!(node.reason, types::InstallReason::Direct) {
@@ -281,6 +319,7 @@ pub fn run(
     let failed_packages = failed_packages.into_inner().unwrap();
 
     if !failed_packages.is_empty() {
+        let _ = tx.rollback();
         eprintln!(
             "\n{}: The following packages failed to install:",
             "Error".red().bold()
@@ -291,6 +330,10 @@ pub fn run(
         }
 
         std::process::exit(1);
+    }
+
+    if let Err(e) = tx.commit() {
+        eprintln!("Warning: failed to finalize installation: {}", e);
     }
 
     if save && scope_override == Some(types::Scope::Project) {

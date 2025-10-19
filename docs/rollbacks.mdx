@@ -5,17 +5,27 @@ description: How to roll back a package to a previous version using Zoi.
 
 Zoi includes a rollback feature that acts as a safety net, allowing you to quickly revert a package to its previously installed version. This is useful if an update introduces a bug or an unwanted change.
 
+## Transactional Operations (Install/Update)
+
+As of this release, installs and updates are performed transactionally. During a transaction (e.g. `zoi install a b c` or `zoi update --all`):
+
+- Zoi snapshots the current state before making any changes.
+- If any step in the operation fails, Zoi automatically rolls back all changes made during that operation.
+- After a successful transaction, any old package versions are cleaned up according to your retention settings.
+
+This prevents partially updated states when installing or upgrading multiple packages.
+
 ## How It Works
 
-When you install or update a package that is already present on your system, Zoi automatically creates a backup of the existing version before proceeding with the new installation. This backup includes the package's binaries and its manifest file.
+When you install or update a package that is already present on your system, Zoi automatically keeps at least the previously installed version available. For updates executed inside a transaction, cleanup of older versions is deferred until the transaction successfully completes.
 
-The `zoi rollback` command then uses this backup to restore the package to its prior state.
+The `zoi rollback` command still allows you to roll back a single package to its immediately previous version when available.
 
 **Key Points:**
 
 - A backup is only created when overwriting an existing installation.
-- Only the single most recent version is kept as a backup. Each new update overwrites the previous backup.
-- This feature is enabled by default.
+- Only the most recent previous version is kept per package.
+- During updates performed in a transaction, cleanup of old versions is deferred until commit to ensure a safe rollback path.
 
 ## Usage
 
@@ -29,9 +39,9 @@ zoi rollback my-cli
 Zoi will:
 
 1. Confirm that you want to proceed.
-2. Uninstall the current version of the package.
-3. Restore the backed-up version.
-4. Re-create the necessary symlinks to make the command available in your shell.
+2. Switch the active version back to the previous one.
+3. Re-create the necessary symlinks to make the command available in your shell.
+4. Remove the failed/current version.
 
 ## Configuration
 
@@ -39,7 +49,7 @@ You can control the rollback behavior both globally and on a per-package basis.
 
 ### Global Configuration
 
-To disable rollbacks for all packages, you can edit your Zoi configuration file located at `~/.zoi/pkgs/config.yaml` and add the following line:
+To disable keeping an extra version for quick rollback, edit your Zoi config at `~/.zoi/pkgs/config.yaml` and add:
 
 ```yaml
 # ~/.zoi/pkgs/config.yaml
@@ -68,5 +78,5 @@ This setting will override the global configuration.
 
 The rollback feature is designed for quick recovery, not for managing multiple versions of a package.
 
-- It only stores **one** previous version.
+- It only stores **one** previous version per package.
 - To lock a package to a specific version and prevent it from being updated, use the [`zoi pin`](/docs/zds/zoi) command instead.
