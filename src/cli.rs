@@ -269,9 +269,38 @@ enum Commands {
         r#type: Option<String>,
     },
 
+    /// Adds one or more packages to the current project (alias for install --local)
+    Add {
+        /// Package names to add
+        #[arg(value_name = "PACKAGES", required = true, value_parser = PkgOrPathParser, hide_possible_values = true)]
+        packages: Vec<String>,
+        /// Force re-installation even if the package is already installed
+        #[arg(long)]
+        force: bool,
+        /// Accept all optional dependencies
+        #[arg(long)]
+        all_optional: bool,
+        /// Save the package to the project's zoi.yaml
+        #[arg(long)]
+        save: bool,
+        /// The type of package to build if building from source (e.g. 'source', 'pre-compiled').
+        #[arg(long)]
+        r#type: Option<String>,
+    },
+
+    /// Removes one or more packages from the current project (alias for uninstall --local)
+    Remove {
+        /// Packages to remove
+        #[arg(value_name = "PACKAGES", required = true, value_parser = PackageValueParser, hide_possible_values = true)]
+        packages: Vec<String>,
+        /// Save the removal to the project's zoi.yaml
+        #[arg(long)]
+        save: bool,
+    },
+
     /// Uninstalls one or more packages previously installed by Zoi
     #[command(
-        aliases = ["un", "rm", "remove"],
+        aliases = ["un", "rm"],
         long_about = "Removes one or more packages' files from the Zoi store and deletes their symlinks from the bin directory. This command will fail if a package was not installed by Zoi."
     )]
     Uninstall {
@@ -287,6 +316,9 @@ enum Commands {
         /// Uninstall packages globally for the current user (alias for --scope=user)
         #[arg(long)]
         global: bool,
+        /// Remove the package from the project's zoi.yaml
+        #[arg(long)]
+        save: bool,
     },
 
     /// Execute a command defined in a local zoi.yaml file
@@ -565,6 +597,8 @@ pub fn run() {
         let needs_lock = matches!(
             command,
             Commands::Install { .. }
+                | Commands::Add { .. }
+                | Commands::Remove { .. }
                 | Commands::Uninstall { .. }
                 | Commands::Update { .. }
                 | Commands::Autoremove
@@ -683,13 +717,39 @@ pub fn run() {
                 );
                 Ok(())
             }
+            Commands::Add {
+                packages,
+                force,
+                all_optional,
+                save,
+                r#type,
+            } => {
+                cmd::install::run(
+                    &packages,
+                    None,
+                    force,
+                    all_optional,
+                    cli.yes,
+                    None,
+                    true,
+                    false,
+                    save,
+                    r#type,
+                );
+                Ok(())
+            }
+            Commands::Remove { packages, save } => {
+                cmd::uninstall::run(&packages, None, true, false, save);
+                Ok(())
+            }
             Commands::Uninstall {
                 packages,
                 scope,
                 local,
                 global,
+                save,
             } => {
-                cmd::uninstall::run(&packages, scope, local, global);
+                cmd::uninstall::run(&packages, scope, local, global, save);
                 Ok(())
             }
             Commands::Run { cmd_alias, args } => {

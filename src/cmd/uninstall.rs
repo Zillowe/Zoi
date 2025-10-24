@@ -6,6 +6,7 @@ pub fn run(
     scope: Option<crate::cli::InstallScope>,
     local: bool,
     global: bool,
+    save: bool,
 ) {
     let mut scope_override = scope.map(|s| match s {
         crate::cli::InstallScope::User => types::Scope::User,
@@ -68,5 +69,16 @@ pub fn run(
         std::process::exit(1);
     } else if let Err(e) = transaction::commit(&transaction.id) {
         eprintln!("Warning: Failed to commit transaction: {}", e);
+    }
+
+    if save
+        && scope_override == Some(types::Scope::Project)
+        && let Err(e) = crate::project::config::remove_packages_from_config(package_names)
+    {
+        eprintln!(
+            "{}: Failed to remove packages from zoi.yaml: {}",
+            "Warning".yellow().bold(),
+            e
+        );
     }
 }

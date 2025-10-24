@@ -24,6 +24,8 @@ pub struct ProjectConfig {
     pub commands: Vec<CommandSpec>,
     #[serde(default)]
     pub environments: Vec<EnvironmentSpec>,
+    #[serde(default)]
+    pub registry: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -111,6 +113,37 @@ pub fn add_packages_to_config(packages: &[String]) -> Result<()> {
                 let new_pkg_value = serde_yaml::Value::String(package.clone());
                 if !sequence.contains(&new_pkg_value) {
                     sequence.push(new_pkg_value);
+                }
+            }
+        }
+    }
+
+    let new_content = serde_yaml::to_string(&yaml_value)?;
+    fs::write(config_path, new_content)?;
+
+    Ok(())
+}
+
+pub fn remove_packages_from_config(packages: &[String]) -> Result<()> {
+    let config_path = Path::new("zoi.yaml");
+    if !config_path.exists() {
+        return Err(anyhow!(
+            "No 'zoi.yaml' file found in the current directory."
+        ));
+    }
+
+    let content = fs::read_to_string(config_path)?;
+    let mut yaml_value: serde_yaml::Value = serde_yaml::from_str(&content)?;
+
+    if let Some(mapping) = yaml_value.as_mapping_mut() {
+        let pkgs_key = serde_yaml::Value::String("pkgs".to_string());
+        if let Some(pkgs_list) = mapping.get_mut(&pkgs_key)
+            && let Some(sequence) = pkgs_list.as_sequence_mut()
+        {
+            for package in packages {
+                let pkg_value = serde_yaml::Value::String(package.clone());
+                if let Some(pos) = sequence.iter().position(|v| v == &pkg_value) {
+                    sequence.remove(pos);
                 }
             }
         }

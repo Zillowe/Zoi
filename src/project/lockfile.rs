@@ -25,3 +25,25 @@ pub fn write_zoi_lock(lockfile: &types::ZoiLock) -> Result<()> {
     fs::write(path, content)?;
     Ok(())
 }
+
+pub fn read_zoi_lock_v1() -> Result<types::ZoiLockV1> {
+    let path = get_lockfile_path()?;
+    if !path.exists() {
+        return Ok(types::ZoiLockV1 {
+            version: "1".to_string(),
+            packages: HashMap::new(),
+            registries: HashMap::new(),
+            registry_packages: HashMap::new(),
+        });
+    }
+    let content = fs::read_to_string(path)?;
+    let lockfile = serde_json::from_str(&content)?;
+    Ok(lockfile)
+}
+
+pub fn write_zoi_lock_v1(lockfile: &types::ZoiLockV1) -> Result<()> {
+    let path = get_lockfile_path()?;
+    let content = serde_json::to_string_pretty(lockfile)?;
+    fs::write(path, content)?;
+    Ok(())
+}

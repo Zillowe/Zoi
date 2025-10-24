@@ -34,6 +34,18 @@ pub fn run(
         && let Ok(config) = project::config::load()
         && config.config.local
     {
+        if let Ok(missing_registries) = project::lockfile_v1::verify_registries(&config)
+            && !missing_registries.is_empty()
+        {
+            eprintln!("{}", "You don't have these registries:".red().bold());
+            for registry in &missing_registries {
+                eprintln!("  - {}", registry);
+            }
+            eprintln!("\n{}", "You can add them with this command:".yellow());
+            eprintln!("  zoi sync add <registry-url>");
+            std::process::exit(1);
+        }
+
         let old_lockfile = project::lockfile::read_zoi_lock().ok();
 
         println!("Installing project packages locally...");

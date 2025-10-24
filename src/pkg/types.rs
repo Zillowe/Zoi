@@ -348,6 +348,27 @@ pub struct ZoiLock {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ZoiLockV1 {
+    pub version: String,
+    pub packages: HashMap<String, String>,
+    pub registries: HashMap<String, String>,
+    #[serde(flatten)]
+    pub registry_packages: HashMap<String, HashMap<String, ZoiLockPackageInfo>>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct ZoiLockPackageInfo {
+    pub version: String,
+    pub integrity: String,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub dependencies: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub options_dependencies: Vec<String>,
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub optionals_dependencies: Vec<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Lockfile {
     pub version: String,
     pub packages: HashMap<String, LockfilePackage>,
