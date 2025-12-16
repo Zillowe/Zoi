@@ -69,7 +69,7 @@ regex = "1.11.1"
 reqwest = { version = "0.12.22", features = ["blocking"] }
 self_update = "0.42.0"
 semver = "1.0.26"
-sequoia-openpgp = { version = "2.0.0", default-features = false, features = [
+sequoia-openpgp = { version = "2.1.0", default-features = false, features = [
   "crypto-openssl",
 ] }
 serde = { version = "1.0.219", features = ["derive"] }
